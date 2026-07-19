@@ -1,0 +1,23 @@
+{
+  "shotId": "S4-C",
+  "sourceFile": "source-videos/drive/S4-C.mp4",
+  "sourceSha256": "b8e4136315da1db774633a685768b50386434c8401f20ee4e12f478eb7e519f5",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Mira answers, gets up immediately, and exits the warm bedroom; the caring branch action reads clearly."
+}

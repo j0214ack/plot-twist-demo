@@ -1,0 +1,23 @@
+{
+  "shotId": "S4-C2",
+  "sourceFile": "source-videos/drive/S4-C2.mp4",
+  "sourceSha256": "3b03a4a8cf4c9aca498e2fb37f734a17099f422b63cae9448362d2a9e32b7d94",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Male Yun visibly shifts from tension to relieved laughter while on the call; the required emotional turn is clear."
+}

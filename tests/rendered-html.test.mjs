@@ -79,14 +79,16 @@ test("matches a player interpretation without an API key", async () => {
   });
 });
 
-test("ships the complete v4.1 hostile route with opening and rewind assets", async () => {
-  const [story, shotlist, opening, openingRewind, hostile, hostileRewind] = await Promise.all([
+test("ships both complete v4.1 routes with opening and rewind assets", async () => {
+  const [story, shotlist, opening, openingRewind, hostile, hostileRewind, caring, caringRewind] = await Promise.all([
     readFile(new URL("public/story.json", projectRoot), "utf8"),
     readFile(new URL("demo-shotlist.md", projectRoot), "utf8"),
     stat(new URL("public/videos/read-0942-opening-v4.mp4", projectRoot)),
     stat(new URL("public/videos/read-0942-opening-v4-reverse.mp4", projectRoot)),
     stat(new URL("public/videos/read-0942-hostile-v4.mp4", projectRoot)),
     stat(new URL("public/videos/read-0942-hostile-v4-reverse.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-caring-v4.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-caring-v4-reverse.mp4", projectRoot)),
   ]);
 
   assert.match(shotlist, /v4\.1/);
@@ -96,6 +98,8 @@ test("ships the complete v4.1 hostile route with opening and rewind assets", asy
   assert.match(story, /\/videos\/read-0942-opening-v4-reverse\.mp4/);
   assert.match(story, /\/videos\/read-0942-hostile-v4\.mp4/);
   assert.match(story, /\/videos\/read-0942-hostile-v4-reverse\.mp4/);
+  assert.match(story, /\/videos\/read-0942-caring-v4\.mp4/);
+  assert.match(story, /\/videos\/read-0942-caring-v4-reverse\.mp4/);
   assert.match(story, /"sceneMessageOverlay"/);
   assert.match(story, /已讀 · 21:42/);
   assert.match(story, /算了，當我沒說。/);
@@ -105,8 +109,12 @@ test("ships the complete v4.1 hostile route with opening and rewind assets", asy
   assert.match(story, /她把受傷翻成生氣/);
   assert.match(story, /YUN · 另一端/);
   assert.match(story, /三週後/);
+  assert.match(story, /她決定現在就去找他/);
+  assert.match(story, /他不用一個人撐著/);
   assert.ok(opening.size > 5_000_000);
   assert.ok(openingRewind.size > 500_000);
   assert.ok(hostile.size > 5_000_000);
   assert.ok(hostileRewind.size > 4_000_000);
+  assert.ok(caring.size > 8_000_000);
+  assert.ok(caringRewind.size > 7_000_000);
 });

@@ -1,0 +1,23 @@
+{
+  "shotId": "S2-C",
+  "sourceFile": "source-videos/drive/S2-C.mp4",
+  "sourceSha256": "5885fb22cbb26a0e5e3aa8e0224513026c56bd5706806f269dd1b8dcc08405dd",
+  "sourceDurationSec": 10.041667,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": null
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": null
+  },
+  "processing": "stream-copy with faststart; silent AAC is added only in the assembled caring route",
+  "qcStatus": "accepted",
+  "qc": "Male Yun reads the caring message, stands, moves down the hospital corridor, and begins the call; the emotional lift is clear."
+}

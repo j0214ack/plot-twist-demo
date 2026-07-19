@@ -137,12 +137,54 @@
       "outputSpec": "1280x720, 24fps, H.264/AAC",
       "qcStatus": "accepted",
       "qc": "Male Yun, locked corridor framing, physical deflation, and resignation all read clearly."
+    },
+    "S2-C": {
+      "driveName": "S2-C.mp4",
+      "driveSizeLabel": "8.5 MB",
+      "driveModifiedLabel": "下午2:41",
+      "downloadStatus": "downloaded",
+      "localSource": "source-videos/drive/S2-C.mp4",
+      "sourceSha256": "5885fb22cbb26a0e5e3aa8e0224513026c56bd5706806f269dd1b8dcc08405dd",
+      "processingStatus": "standardized",
+      "processedFile": "public/videos/shots/S2-C.mp4",
+      "posterFile": "public/assets/shots/S2-C.jpg",
+      "sourceDurationSec": 10.041667,
+      "outputSpec": "1280x720, 24fps, H.264, no source audio",
+      "qcStatus": "accepted",
+      "qc": "Male Yun reads the caring message, stands, moves down the hospital corridor, and begins the call; the emotional lift is clear."
+    },
+    "S4-C": {
+      "driveName": "S4-C",
+      "driveSizeLabel": "1.9 MB",
+      "driveModifiedLabel": "下午2:36",
+      "downloadStatus": "downloaded",
+      "localSource": "source-videos/drive/S4-C.mp4",
+      "sourceSha256": "b8e4136315da1db774633a685768b50386434c8401f20ee4e12f478eb7e519f5",
+      "processingStatus": "standardized",
+      "processedFile": "public/videos/shots/S4-C.mp4",
+      "posterFile": "public/assets/shots/S4-C.jpg",
+      "sourceDurationSec": 8,
+      "outputSpec": "1280x720, 24fps, H.264/AAC",
+      "qcStatus": "accepted",
+      "qc": "Mira answers, gets up immediately, and exits the warm bedroom; the caring branch action reads clearly."
+    },
+    "S4-C2": {
+      "driveName": "S4-C2",
+      "driveSizeLabel": "1.7 MB",
+      "driveModifiedLabel": "下午2:37",
+      "downloadStatus": "downloaded",
+      "localSource": "source-videos/drive/S4-C2.mp4",
+      "sourceSha256": "3b03a4a8cf4c9aca498e2fb37f734a17099f422b63cae9448362d2a9e32b7d94",
+      "processingStatus": "standardized",
+      "processedFile": "public/videos/shots/S4-C2.mp4",
+      "posterFile": "public/assets/shots/S4-C2.jpg",
+      "sourceDurationSec": 8,
+      "outputSpec": "1280x720, 24fps, H.264/AAC",
+      "qcStatus": "accepted",
+      "qc": "Male Yun visibly shifts from tension to relieved laughter while on the call; the required emotional turn is clear."
     }
   },
   "pendingShots": [
-    "S2-C",
-    "S4-C",
-    "S4-C2",
     "S3-N",
     "S6-N"
   ]
