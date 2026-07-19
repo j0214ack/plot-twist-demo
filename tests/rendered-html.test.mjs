@@ -109,6 +109,10 @@ test("ships the real batch-one opening plus forward and reverse H/C reels", asyn
   assert.match(story, /已讀 · 21:42/);
   assert.match(story, /算了，當我沒說。/);
   assert.match(story, /妳還好嗎？/);
+  assert.match(story, /"priming"/);
+  assert.match(story, /"videoNarration"/);
+  assert.match(story, /她把受傷翻成生氣/);
+  assert.match(story, /YUN · 另一端/);
   assert.ok(openingVideo.size > 500_000);
   assert.ok(openingRewind.size > 500_000);
   assert.ok(hostileVideo.size > 1_000_000);

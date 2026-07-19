@@ -35,7 +35,27 @@
         "tone": "hostile",
         "startSec": 0.65,
         "endSec": 4.85
-      }
+      },
+      "priming": {
+        "innerNarration": "不確定讓 Mira 很難受。為了不再等，她把受傷翻成生氣，也把猜測當成答案。先推開對方，至少感覺比較有尊嚴。",
+        "nextAction": "她會刪掉原本想問的話，只留下：「算了，當我沒說。」"
+      },
+      "videoNarration": [
+        {
+          "startSec": 0.65,
+          "endSec": 4.85,
+          "label": "MIRA · 心理活動",
+          "text": "「既然妳不在乎，我也不要再顯得那麼在乎。」受傷被她包成一句冷淡的話。",
+          "tone": "hostile"
+        },
+        {
+          "startSec": 5.2,
+          "endSec": 14.85,
+          "label": "YUN · 另一端",
+          "text": "但 Yun 不是故意沉默。她正在醫院陪家人，疲憊到連解釋都組不成一句完整的話。",
+          "tone": "neutral"
+        }
+      ]
     },
     {
       "id": "caring",
@@ -56,7 +76,27 @@
         "tone": "caring",
         "startSec": 0.65,
         "endSec": 9.85
-      }
+      },
+      "priming": {
+        "innerNarration": "Mira 還是害怕自己被忽略。但她提醒自己：沉默也可能來自對方的處境。她不必先知道真相，才能先留下一點關心。",
+        "nextAction": "她會把追問改成一句沒有期限的訊息：「不急著回。妳還好嗎？」"
+      },
+      "videoNarration": [
+        {
+          "startSec": 0.65,
+          "endSec": 9.85,
+          "label": "MIRA · 心理活動",
+          "text": "Mira 仍然害怕被忽略，但她先替沉默留下一個別的可能：也許 Yun 正在面對什麼。",
+          "tone": "caring"
+        },
+        {
+          "startSec": 10.2,
+          "endSec": 19.85,
+          "label": "YUN · 另一端",
+          "text": "Yun 正在醫院陪家人。這句不催促的關心沒有解決問題，卻讓她知道自己不必獨自撐住。",
+          "tone": "neutral"
+        }
+      ]
     }
   ]
 }

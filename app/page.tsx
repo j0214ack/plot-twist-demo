@@ -15,6 +15,19 @@ type CinematicMessageOverlayConfig = {
   endSec?: number;
 };
 
+type BranchPriming = {
+  innerNarration: string;
+  nextAction: string;
+};
+
+type VideoNarrationCue = {
+  startSec: number;
+  endSec: number;
+  label: string;
+  text: string;
+  tone?: "neutral" | "hostile" | "caring";
+};
+
 type StoryBranch = {
   id: string;
   title: string;
@@ -28,6 +41,8 @@ type StoryBranch = {
   fallbackDurationSec: number;
   screenOverlay?: ScreenOverlayConfig | null;
   messageOverlay?: CinematicMessageOverlayConfig | null;
+  priming?: BranchPriming | null;
+  videoNarration?: VideoNarrationCue[];
 };
 
 type StoryConfig = {
@@ -87,6 +102,27 @@ const DEFAULT_STORY: StoryConfig = {
         startSec: 0.65,
         endSec: 4.85,
       },
+      priming: {
+        innerNarration:
+          "不確定讓 Mira 很難受。為了不再等，她把受傷翻成生氣，也把猜測當成答案。先推開對方，至少感覺比較有尊嚴。",
+        nextAction: "她會刪掉原本想問的話，只留下：「算了，當我沒說。」",
+      },
+      videoNarration: [
+        {
+          startSec: 0.65,
+          endSec: 4.85,
+          label: "MIRA · 心理活動",
+          text: "「既然妳不在乎，我也不要再顯得那麼在乎。」受傷被她包成一句冷淡的話。",
+          tone: "hostile",
+        },
+        {
+          startSec: 5.2,
+          endSec: 14.85,
+          label: "YUN · 另一端",
+          text: "但 Yun 不是故意沉默。她正在醫院陪家人，疲憊到連解釋都組不成一句完整的話。",
+          tone: "neutral",
+        },
+      ],
     },
     {
       id: "caring",
@@ -108,6 +144,27 @@ const DEFAULT_STORY: StoryConfig = {
         startSec: 0.65,
         endSec: 9.85,
       },
+      priming: {
+        innerNarration:
+          "Mira 還是害怕自己被忽略。但她提醒自己：沉默也可能來自對方的處境。她不必先知道真相，才能先留下一點關心。",
+        nextAction: "她會把追問改成一句沒有期限的訊息：「不急著回。妳還好嗎？」",
+      },
+      videoNarration: [
+        {
+          startSec: 0.65,
+          endSec: 9.85,
+          label: "MIRA · 心理活動",
+          text: "Mira 仍然害怕被忽略，但她先替沉默留下一個別的可能：也許 Yun 正在面對什麼。",
+          tone: "caring",
+        },
+        {
+          startSec: 10.2,
+          endSec: 19.85,
+          label: "YUN · 另一端",
+          text: "Yun 正在醫院陪家人。這句不催促的關心沒有解決問題，卻讓她知道自己不必獨自撐住。",
+          tone: "neutral",
+        },
+      ],
     },
   ],
 };
@@ -124,7 +181,6 @@ const PHASE_LABELS: Record<Phase, string> = {
 const REWIND_RATE = 16;
 const BRIDGE_MIN_DURATION_MS = 900;
 const MATCHING_MIN_DURATION_MS = 700;
-const ECHO_DURATION_MS = 1800;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -471,14 +527,15 @@ export default function Home() {
     setVideoFailed(false);
     setPlaybackBlocked(false);
     setPhase("echo");
-    await wait(ECHO_DURATION_MS);
-    setPhase("playback");
   };
 
   const prompt = phase === "return" ? story.returnPrompt : story.openingPrompt;
   const sceneImage = story.sceneImage;
   const continuePlayback = () => {
     videoRef.current?.play().then(() => setPlaybackBlocked(false)).catch(() => undefined);
+  };
+  const continueFromPriming = () => {
+    setPhase("playback");
   };
   const startRewind = () => {
     if (!activeBranch?.rewindSrc) {
@@ -529,6 +586,14 @@ export default function Home() {
     isPlaying &&
     branchMessageTime >= (branchMessageOverlay?.startSec ?? 0) &&
     branchMessageTime <= (branchMessageOverlay?.endSec ?? Number.POSITIVE_INFINITY);
+  const activeVideoNarration = activeBranch?.videoNarration?.find(
+    (cue) => branchMessageTime >= cue.startSec && branchMessageTime <= cue.endSec,
+  );
+  const showVideoNarration =
+    Boolean(activeVideoNarration) &&
+    phase === "playback" &&
+    rewindStage === "idle" &&
+    isPlaying;
 
   return (
     <main
@@ -660,6 +725,17 @@ export default function Home() {
         />
       )}
 
+      {showVideoNarration && activeVideoNarration && activeBranch && (
+        <aside
+          key={`${activeBranch.id}-${activeVideoNarration.startSec}`}
+          className={`video-narration tone-${activeVideoNarration.tone ?? "neutral"}`}
+          aria-live="polite"
+        >
+          <span>{activeVideoNarration.label}</span>
+          <p>{activeVideoNarration.text}</p>
+        </aside>
+      )}
+
       {(phase !== "playback" || rewindStage === "bridge") && (
         <header className="scene-header">
           <p className="scene-label">
@@ -738,11 +814,29 @@ export default function Home() {
         </section>
       )}
 
-      {phase === "echo" && interpretationEcho && (
-        <section className="understanding-echo" role="status" aria-live="polite">
+      {phase === "echo" && interpretationEcho && activeBranch && (
+        <section
+          className="understanding-echo priming-page"
+          aria-label="你的解讀與故事鋪墊"
+        >
           <span>你是這樣理解的</span>
           <blockquote>{interpretationEcho}</blockquote>
-          <small>故事正在回應你的目光</small>
+          {activeBranch.priming && (
+            <div className="priming-details">
+              <article>
+                <strong>心理活動</strong>
+                <p>{activeBranch.priming.innerNarration}</p>
+              </article>
+              <article>
+                <strong>接下來</strong>
+                <p>{activeBranch.priming.nextAction}</p>
+              </article>
+            </div>
+          )}
+          <button className="priming-continue" type="button" onClick={continueFromPriming}>
+            <span>看看這個解讀會帶來什麼</span>
+            <span aria-hidden="true">→</span>
+          </button>
         </section>
       )}
 
