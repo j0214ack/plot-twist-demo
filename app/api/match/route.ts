@@ -1,3 +1,5 @@
+import { checkSemanticRateLimit, type SemanticRateLimit } from "../../../db/semantic-rate-limit";
+
 type Candidate = {
   id: string;
   title: string;
@@ -5,6 +7,14 @@ type Candidate = {
   keywords: string[];
   interpretationEcho: string | undefined;
 };
+
+function rateLimitHeaders(rateLimit: SemanticRateLimit) {
+  return {
+    "RateLimit-Limit": String(rateLimit.limit),
+    "RateLimit-Remaining": String(rateLimit.remaining),
+    "RateLimit-Reset": String(rateLimit.retryAfterSeconds),
+  };
+}
 
 type MatchPayload = {
   interpretation?: unknown;
@@ -125,6 +135,18 @@ export async function POST(request: Request) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return Response.json(fallback);
 
+  const rateLimit = await checkSemanticRateLimit(request);
+  const responseHeaders = rateLimitHeaders(rateLimit);
+  if (!rateLimit.allowOpenAI) {
+    return Response.json(
+      {
+        ...fallback,
+        rateLimited: rateLimit.reason === "limited",
+      },
+      { headers: responseHeaders },
+    );
+  }
+
   const candidateIds = candidates.map((candidate) => candidate.id);
 
   try {
@@ -179,7 +201,7 @@ export async function POST(request: Request) {
         status: openAIResponse.status,
         body: (await openAIResponse.text()).slice(0, 1000),
       });
-      return Response.json(fallback);
+      return Response.json(fallback, { headers: responseHeaders });
     }
     const responseData = (await openAIResponse.json()) as Record<string, unknown>;
     const outputText = extractOutputText(responseData);
@@ -188,7 +210,7 @@ export async function POST(request: Request) {
         status: responseData.status,
         incompleteDetails: responseData.incomplete_details,
       });
-      return Response.json(fallback);
+      return Response.json(fallback, { headers: responseHeaders });
     }
 
     const result = JSON.parse(outputText) as {
@@ -196,20 +218,23 @@ export async function POST(request: Request) {
       echo?: unknown;
     };
     if (typeof result.branchId !== "string" || !candidateIds.includes(result.branchId)) {
-      return Response.json(fallback);
+      return Response.json(fallback, { headers: responseHeaders });
     }
 
-    return Response.json({
-      branchId: result.branchId,
-      rationale: "語意配對完成。",
-      echo:
-        typeof result.echo === "string" && result.echo.trim()
-          ? result.echo.trim().slice(0, 120)
-          : fallback.echo,
-      source: "openai",
-    });
+    return Response.json(
+      {
+        branchId: result.branchId,
+        rationale: "語意配對完成。",
+        echo:
+          typeof result.echo === "string" && result.echo.trim()
+            ? result.echo.trim().slice(0, 120)
+            : fallback.echo,
+        source: "openai",
+      },
+      { headers: responseHeaders },
+    );
   } catch (error) {
     console.error("OpenAI story route threw", error);
-    return Response.json(fallback);
+    return Response.json(fallback, { headers: responseHeaders });
   }
 }
