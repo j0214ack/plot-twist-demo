@@ -8,13 +8,22 @@
 - `secret.mp4`
 - `threat.mp4`
 
-接著在 `public/story.json` 的對應分支把 `videoSrc` 從 `null` 改成，例如：
+接著在 `public/story.json` 的對應分支設定正向影片與倒帶影片，例如：
 
 ```json
-"videoSrc": "/videos/distance.mp4"
+"videoSrc": "/videos/distance.mp4",
+"rewindSrc": "/videos/distance-reverse.mp4"
 ```
 
 若 `videoSrc` 是 `null`，網站會播放內建的 prototype cut，方便沒有正式影片時展示完整流程。
+`rewindSrc` 是同一段畫面反向、移除聲音後的 MP4；網站會以 4× 播放它。
+
+產生 reverse MP4 的參考指令：
+
+```bash
+ffmpeg -i branch.mp4 -vf reverse -an -c:v libx264 -crf 23 -preset medium \
+  -pix_fmt yuv420p -movflags +faststart branch-reverse.mp4
+```
 
 ## 目前的填充影片
 

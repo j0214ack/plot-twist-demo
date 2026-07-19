@@ -11,6 +11,7 @@ type StoryBranch = {
   matchHint: string;
   keywords: string[];
   videoSrc: string | null;
+  rewindSrc: string | null;
   posterSrc: string;
   previewSubtitle: string;
   fallbackDurationSec: number;
@@ -49,6 +50,7 @@ const DEFAULT_STORY: StoryConfig = {
       matchHint: "兩人正在冷戰、關係疏遠，或其中一人對另一人感到失望。",
       keywords: ["冷戰", "吵架", "生氣", "疏遠", "分手", "失望", "尷尬", "沉默"],
       videoSrc: "/videos/filler-kitchen-argument.mp4",
+      rewindSrc: "/videos/filler-kitchen-argument-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "「你回來了。」她沒有抬頭。桌上的兩個杯子，只有一個還冒著熱氣。",
       fallbackDurationSec: 11,
@@ -60,6 +62,7 @@ const DEFAULT_STORY: StoryConfig = {
       matchHint: "她似乎隱瞞了秘密、準備驚喜，或正在等待適合開口的時機。",
       keywords: ["秘密", "隱瞞", "驚喜", "禮物", "準備", "等待", "開口", "懷孕"],
       videoSrc: "/videos/filler-secret-surprise.mp4",
+      rewindSrc: "/videos/filler-secret-surprise-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "她把手機反扣在桌上，深吸一口氣：「我有一件事，一直不知道怎麼告訴你。」",
       fallbackDurationSec: 11,
@@ -71,6 +74,7 @@ const DEFAULT_STORY: StoryConfig = {
       matchHint: "房間裡有危險、有人跟蹤他們，或兩人正在躲避某個即將到來的人。",
       keywords: ["危險", "跟蹤", "躲", "門外", "陌生人", "害怕", "威脅", "報警"],
       videoSrc: "/videos/filler-threat-door.mp4",
+      rewindSrc: "/videos/filler-threat-door-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "門外傳來第三次敲門聲。她壓低聲音：「不是說好，今晚不要回來嗎？」",
       fallbackDurationSec: 11,
@@ -87,6 +91,8 @@ const PHASE_LABELS: Record<Phase, string> = {
   return: "Scene 5 — 回到場景",
 };
 
+const REWIND_RATE = 4;
+
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -99,6 +105,8 @@ export default function Home() {
   const [activeBranch, setActiveBranch] = useState<StoryBranch | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [isRewinding, setIsRewinding] = useState(false);
+  const [rewindVisible, setRewindVisible] = useState(false);
   const [videoFailed, setVideoFailed] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const [loopCount, setLoopCount] = useState(0);
@@ -139,9 +147,26 @@ export default function Home() {
 
   const finishPlayback = useCallback(() => {
     setIsPlaying(false);
-    setInput("");
-    setLoopCount((current) => current + 1);
-    setPhase("return");
+  }, []);
+
+  const finishRewind = useCallback(() => {
+    const revealFirstFrame = () => {
+      setInput("");
+      setLoopCount((current) => current + 1);
+      setIsRewinding(false);
+      setRewindVisible(false);
+      setPhase("return");
+    };
+
+    const originalVideo = videoRef.current;
+    if (!originalVideo || originalVideo.currentTime <= 0.04) {
+      revealFirstFrame();
+      return;
+    }
+
+    originalVideo.pause();
+    originalVideo.addEventListener("seeked", revealFirstFrame, { once: true });
+    originalVideo.currentTime = 0;
   }, []);
 
   useEffect(() => {
@@ -157,6 +182,21 @@ export default function Home() {
       finishPlayback();
     }
   }, [elapsed, fallbackDuration, finishPlayback, isFallbackCut, phase]);
+
+  useEffect(() => {
+    if (phase !== "playback" || !activeBranch?.rewindSrc) return;
+
+    const preload = document.createElement("video");
+    preload.preload = "auto";
+    preload.muted = true;
+    preload.src = activeBranch.rewindSrc;
+    preload.load();
+
+    return () => {
+      preload.removeAttribute("src");
+      preload.load();
+    };
+  }, [activeBranch?.rewindSrc, phase]);
 
   const submitInterpretation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -199,6 +239,8 @@ export default function Home() {
     setActiveBranch(matchedBranch);
     setElapsed(0);
     setIsPlaying(true);
+    setIsRewinding(false);
+    setRewindVisible(false);
     setVideoFailed(false);
     setPlaybackBlocked(false);
     setPhase("playback");
@@ -209,6 +251,20 @@ export default function Home() {
   const continuePlayback = () => {
     videoRef.current?.play().then(() => setPlaybackBlocked(false)).catch(() => undefined);
   };
+  const startRewind = () => {
+    if (!activeBranch?.rewindSrc) {
+      finishRewind();
+      return;
+    }
+
+    setPlaybackBlocked(false);
+    setRewindVisible(false);
+    setIsRewinding(true);
+  };
+
+  const keepBranchFrame =
+    Boolean(activeBranch) &&
+    (phase === "playback" || phase === "return" || (phase === "matching" && loopCount > 0));
 
   return (
     <main
@@ -216,7 +272,7 @@ export default function Home() {
       className={`story-stage phase-${phase}`}
       aria-label={`${story.title}：${story.episode}`}
     >
-      {phase === "playback" && activeBranch ? (
+      {keepBranchFrame && activeBranch ? (
         activeBranch.videoSrc && !videoFailed ? (
           <video
             ref={videoRef}
@@ -224,13 +280,16 @@ export default function Home() {
             className="scene-media playback-video"
             src={activeBranch.videoSrc}
             poster={activeBranch.posterSrc}
-            autoPlay
+            autoPlay={phase === "playback" && isPlaying}
             playsInline
             preload="auto"
             onCanPlay={(event) => {
+              if (phase !== "playback" || !isPlaying || isRewinding) return;
               event.currentTarget.play().catch(() => setPlaybackBlocked(true));
             }}
-            onEnded={finishPlayback}
+            onEnded={() => {
+              if (phase === "playback" && !isRewinding) finishPlayback();
+            }}
             onError={() => setVideoFailed(true)}
           />
         ) : (
@@ -260,7 +319,23 @@ export default function Home() {
         />
       )}
 
-      {phase === "playback" && activeBranch?.screenOverlay && (
+      {phase === "playback" && activeBranch?.rewindSrc && isRewinding && (
+        <video
+          className={`scene-media rewind-video ${rewindVisible ? "is-visible" : ""}`}
+          src={activeBranch.rewindSrc}
+          muted
+          playsInline
+          preload="auto"
+          onCanPlay={(event) => {
+            event.currentTarget.playbackRate = REWIND_RATE;
+            event.currentTarget.play().catch(() => undefined);
+          }}
+          onPlaying={() => setRewindVisible(true)}
+          onEnded={finishRewind}
+        />
+      )}
+
+      {phase === "playback" && activeBranch?.screenOverlay && !isRewinding && (
         <ScreenReplacement
           config={activeBranch.screenOverlay}
           stageRef={stageRef}
@@ -338,6 +413,20 @@ export default function Home() {
           <span>繼續故事</span>
           <small>點一下繼續</small>
         </button>
+      )}
+
+      {phase === "playback" && activeBranch && !isPlaying && !isRewinding && (
+        <button className="rewind-story" type="button" onClick={startRewind}>
+          <span className="rewind-symbol" aria-hidden="true">↶</span>
+          <strong>倒帶</strong>
+          <small>回到故事開始，換一種解讀</small>
+        </button>
+      )}
+
+      {phase === "playback" && isRewinding && (
+        <p className="rewind-status" role="status" aria-live="polite">
+          REWIND <span>×{REWIND_RATE}</span>
+        </p>
       )}
 
       <p className="episode-counter" aria-label={`已完成 ${loopCount} 次故事循環`}>

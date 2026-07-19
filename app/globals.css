@@ -71,6 +71,18 @@ button {
   background: #000;
 }
 
+.rewind-video {
+  z-index: -3;
+  opacity: 0;
+  background: transparent;
+  filter: contrast(1.07) saturate(0.74);
+  transition: opacity 80ms linear;
+}
+
+.rewind-video.is-visible {
+  opacity: 1;
+}
+
 .opening-video {
   background: #090705;
   filter: saturate(0.78) brightness(0.78) contrast(1.06);
@@ -437,6 +449,77 @@ button {
   letter-spacing: 0.14em;
 }
 
+.rewind-story {
+  position: absolute;
+  z-index: 12;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: min(310px, calc(100vw - 48px));
+  min-height: 178px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  background: rgba(7, 7, 7, 0.58);
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.5), inset 0 1px rgba(255, 255, 255, 0.08);
+  text-shadow: 0 2px 16px #000;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  backdrop-filter: blur(8px) saturate(0.75);
+  animation: rewind-prompt-in 520ms ease both;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.rewind-story:hover,
+.rewind-story:focus-visible {
+  border-color: rgba(255, 255, 255, 0.82);
+  outline: 0;
+  background: rgba(12, 12, 12, 0.7);
+  transform: translate(-50%, -50%) scale(1.025);
+}
+
+.rewind-symbol {
+  font-family: Georgia, serif;
+  font-size: 38px;
+  line-height: 0.9;
+}
+
+.rewind-story strong {
+  font-size: 20px;
+  font-weight: 520;
+  letter-spacing: 0.16em;
+}
+
+.rewind-story small {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.rewind-status {
+  position: absolute;
+  z-index: 10;
+  top: clamp(24px, 3.5vw, 52px);
+  left: 50%;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 2px 16px #000;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 720;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.24em;
+  animation: rewind-status-pulse 700ms ease-in-out infinite alternate;
+}
+
+.rewind-status span {
+  color: var(--warm);
+}
+
 @keyframes scene-arrival {
   from {
     opacity: 0;
@@ -504,6 +587,26 @@ button {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes rewind-prompt-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes rewind-status-pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
   }
 }
 
