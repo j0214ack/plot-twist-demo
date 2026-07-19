@@ -182,10 +182,37 @@
       "outputSpec": "1280x720, 24fps, H.264/AAC",
       "qcStatus": "accepted",
       "qc": "Male Yun visibly shifts from tension to relieved laughter while on the call; the required emotional turn is clear."
+    },
+    "S3-N": {
+      "driveName": "S3-N",
+      "driveSizeLabel": "1.6 MB",
+      "driveModifiedLabel": "下午2:38",
+      "downloadStatus": "downloaded",
+      "localSource": "source-videos/drive/S3-N.mp4",
+      "sourceSha256": "d97a64af51c2f7f7c1164a7c9469692621dc217a4d6b80ee153e73cd23f1662f",
+      "processingStatus": "standardized",
+      "processedFile": "public/videos/shots/S3-N.mp4",
+      "posterFile": "public/assets/shots/S3-N.jpg",
+      "sourceDurationSec": 8,
+      "outputSpec": "1280x720, 24fps, H.264/AAC",
+      "qcStatus": "accepted",
+      "qc": "Mira puts the phone aside, makes tea, and reads; the neutral choice to wait is clear."
+    },
+    "S6-N": {
+      "driveName": "S6-N",
+      "driveSizeLabel": "1.8 MB",
+      "driveModifiedLabel": "下午2:39",
+      "downloadStatus": "downloaded",
+      "localSource": "source-videos/drive/S6-N.mp4",
+      "sourceSha256": "fe3b3b3574cc65071647e1360065190f3080b2da1baa5f8490d4de168f91a7e8",
+      "processingStatus": "standardized",
+      "processedFile": "public/videos/shots/S6-N.mp4",
+      "posterFile": "public/assets/shots/S6-N.jpg",
+      "sourceDurationSec": 8,
+      "outputSpec": "1280x720, 24fps, H.264/AAC",
+      "qcStatus": "accepted",
+      "qc": "Morning light, incoming message, and Mira's visible relief clearly resolve the neutral route."
     }
   },
-  "pendingShots": [
-    "S3-N",
-    "S6-N"
-  ]
+  "pendingShots": []
 }

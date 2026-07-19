@@ -79,8 +79,54 @@ test("matches a player interpretation without an API key", async () => {
   });
 });
 
-test("ships both complete v4.1 routes with opening and rewind assets", async () => {
-  const [story, shotlist, opening, openingRewind, hostile, hostileRewind, caring, caringRewind] = await Promise.all([
+test("routes an unclear interpretation to the neutral default without an API key", async () => {
+  const worker = await loadWorker();
+  const response = await worker.fetch(
+    new Request("http://localhost/api/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        interpretation: "我現在也不知道，先放著明天再看看吧",
+        playerId: "prototype-player-002",
+        defaultBranchId: "neutral",
+        candidates: [
+          {
+            id: "hostile",
+            title: "他根本不在乎我",
+            matchHint: "玩家把已讀不回解讀為冷淡或拒絕",
+            keywords: ["不在乎", "故意"],
+          },
+          {
+            id: "caring",
+            title: "會不會是他那邊出事了",
+            matchHint: "玩家擔心對方遇到事情",
+            keywords: ["出事", "擔心"],
+          },
+          {
+            id: "neutral",
+            title: "我現在還不知道",
+            matchHint: "玩家承認資訊不足，決定先等待",
+            keywords: ["不知道", "先放著", "明天"],
+            interpretationEcho: "你沒有急著替沉默定義；你決定先讓答案留到明天。",
+          },
+        ],
+      }),
+    }),
+    environment(),
+    context,
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    branchId: "neutral",
+    rationale: "以 prototype 關鍵語意規則完成配對。",
+    echo: "你沒有急著替沉默定義；你決定先讓答案留到明天。",
+    source: "fallback",
+  });
+});
+
+test("ships all complete v4.1 routes with opening and rewind assets", async () => {
+  const [story, shotlist, opening, openingRewind, hostile, hostileRewind, caring, caringRewind, neutral, neutralRewind] = await Promise.all([
     readFile(new URL("public/story.json", projectRoot), "utf8"),
     readFile(new URL("demo-shotlist.md", projectRoot), "utf8"),
     stat(new URL("public/videos/read-0942-opening-v4.mp4", projectRoot)),
@@ -89,6 +135,8 @@ test("ships both complete v4.1 routes with opening and rewind assets", async () 
     stat(new URL("public/videos/read-0942-hostile-v4-reverse.mp4", projectRoot)),
     stat(new URL("public/videos/read-0942-caring-v4.mp4", projectRoot)),
     stat(new URL("public/videos/read-0942-caring-v4-reverse.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-neutral-v4.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-neutral-v4-reverse.mp4", projectRoot)),
   ]);
 
   assert.match(shotlist, /v4\.1/);
@@ -100,6 +148,9 @@ test("ships both complete v4.1 routes with opening and rewind assets", async () 
   assert.match(story, /\/videos\/read-0942-hostile-v4-reverse\.mp4/);
   assert.match(story, /\/videos\/read-0942-caring-v4\.mp4/);
   assert.match(story, /\/videos\/read-0942-caring-v4-reverse\.mp4/);
+  assert.match(story, /\/videos\/read-0942-neutral-v4\.mp4/);
+  assert.match(story, /\/videos\/read-0942-neutral-v4-reverse\.mp4/);
+  assert.match(story, /"defaultBranchId": "neutral"/);
   assert.match(story, /"sceneMessageOverlay"/);
   assert.match(story, /已讀 · 21:42/);
   assert.match(story, /算了，當我沒說。/);
@@ -117,4 +168,6 @@ test("ships both complete v4.1 routes with opening and rewind assets", async () 
   assert.ok(hostileRewind.size > 4_000_000);
   assert.ok(caring.size > 5_000_000);
   assert.ok(caringRewind.size > 5_000_000);
+  assert.ok(neutral.size > 1_000_000);
+  assert.ok(neutralRewind.size > 1_000_000);
 });

@@ -4,18 +4,22 @@
 
 ## 目前 Production 狀態
 
-H 敵意線與 C 關心線都已完整並接入 runtime：
+H 敵意線、C 關心線與 N 中性線都已完整並接入 runtime：
 
 `S1 → S3-H → S2-BASE → S2-H → S4-H → S5-H`
 
 `S1 → S3-C → S2-BASE → S2-C → S4-C → S4-C2 → S5-C`
 
+`S1 → S3-N → S6-N`
+
 - Opening：`read-0942-opening-v4.mp4`
 - H reel：`read-0942-hostile-v4.mp4`
 - C reel：`read-0942-caring-v4.mp4`
-- Opening／H／C reel 都有對應的 `-reverse.mp4`，由網站以 16× 播放。
+- N reel：`read-0942-neutral-v4.mp4`
+- Opening／H／C／N reel 都有對應的 `-reverse.mp4`，由網站以 16× 播放。
 - H reel 的實際長度約 40 秒；Opening 約 10 秒。
 - C reel 的實際長度約 50 秒；`S2-C` 的原檔沒有音軌，組裝時補入無聲 AAC 以維持同步。
+- N reel 的實際長度約 16 秒；它也是判讀不明時的 default fallback。
 
 每次 Drive 盤點、下載、處理與 QC 結果記錄在根目錄的 `drive-video-ingest.json`。
 

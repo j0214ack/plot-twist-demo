@@ -9,6 +9,7 @@ type Candidate = {
 type MatchPayload = {
   interpretation?: unknown;
   playerId?: unknown;
+  defaultBranchId?: unknown;
   candidates?: unknown;
 };
 
@@ -42,10 +43,11 @@ function normalizeCandidates(value: unknown): Candidate[] {
     .filter((candidate): candidate is Candidate => Boolean(candidate));
 }
 
-function fallbackMatch(interpretation: string, candidates: Candidate[]) {
+function fallbackMatch(interpretation: string, candidates: Candidate[], defaultBranchId?: string) {
   const normalizedInput = interpretation.toLocaleLowerCase("zh-Hant");
   let best = candidates[0];
-  let bestScore = -1;
+  let bestKeywordScore = -1;
+  let bestOverlapScore = -1;
 
   for (const candidate of candidates) {
     const keywordScore = candidate.keywords.reduce(
@@ -57,12 +59,18 @@ function fallbackMatch(interpretation: string, candidates: Candidate[]) {
       (score, character) => score + (hintCharacters.has(character) ? 0.08 : 0),
       0,
     );
-    const totalScore = keywordScore + overlapScore;
-
-    if (totalScore > bestScore) {
+    if (
+      keywordScore > bestKeywordScore ||
+      (keywordScore === bestKeywordScore && overlapScore > bestOverlapScore)
+    ) {
       best = candidate;
-      bestScore = totalScore;
+      bestKeywordScore = keywordScore;
+      bestOverlapScore = overlapScore;
     }
+  }
+
+  if (bestKeywordScore === 0 && defaultBranchId) {
+    best = candidates.find((candidate) => candidate.id === defaultBranchId) ?? best;
   }
 
   return {
@@ -108,7 +116,12 @@ export async function POST(request: Request) {
     return Response.json({ error: "missing_interpretation_or_candidates" }, { status: 400 });
   }
 
-  const fallback = fallbackMatch(interpretation, candidates);
+  const defaultBranchId =
+    typeof payload.defaultBranchId === "string" &&
+    candidates.some((candidate) => candidate.id === payload.defaultBranchId)
+      ? payload.defaultBranchId
+      : undefined;
+  const fallback = fallbackMatch(interpretation, candidates, defaultBranchId);
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return Response.json(fallback);
 
@@ -134,11 +147,11 @@ export async function POST(request: Request) {
           {
             role: "developer",
             content:
-              "你是互動敘事遊戲的劇情路由器。根據玩家對場景的自由解讀，選出語意最接近的唯一故事分支。不要新增分支。另將玩家的解讀轉寫成第二人稱的繁體中文敘事回聲，18 至 38 字，可用「你覺得」起頭；不要提到 AI、配對或分支，也不要新增候選故事以外的事實。",
+              "你是互動敘事遊戲的劇情路由器。根據玩家對場景的自由解讀，選出語意最接近的唯一故事分支。不要新增分支；若玩家沒有明顯敵意或關心判斷、承認資訊不足或只是想等待，選 neutral。另將玩家的解讀轉寫成第二人稱的繁體中文敘事回聲，18 至 38 字，可用「你覺得」起頭；不要提到 AI、配對或分支，也不要新增候選故事以外的事實。",
           },
           {
             role: "user",
-            content: JSON.stringify({ interpretation, candidates }),
+            content: JSON.stringify({ interpretation, defaultBranchId, candidates }),
           },
         ],
         text: {

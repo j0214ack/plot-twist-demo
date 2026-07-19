@@ -49,6 +49,7 @@ type StoryConfig = {
   id: string;
   title: string;
   episode: string;
+  defaultBranchId?: string;
   sceneImage: string;
   sceneVideoSrc?: string | null;
   sceneRewindSrc?: string | null;
@@ -69,6 +70,7 @@ const DEFAULT_STORY: StoryConfig = {
   id: "read-0942-mvp",
   title: "已讀 9:42",
   episode: "同一個晚上",
+  defaultBranchId: "neutral",
   sceneImage: "/assets/shots/S1.jpg",
   sceneVideoSrc: "/videos/read-0942-opening-v4.mp4",
   sceneRewindSrc: "/videos/read-0942-opening-v4-reverse.mp4",
@@ -190,6 +192,41 @@ const DEFAULT_STORY: StoryConfig = {
           endSec: 49.8,
           label: "同一個晚上",
           text: "她沒有解決所有問題，只是坐到他身邊。這一次，他不用一個人撐著。",
+          tone: "caring",
+        },
+      ],
+    },
+    {
+      id: "neutral",
+      title: "我現在還不知道",
+      matchHint: "玩家承認資訊不足，暫緩判斷，決定先等待、休息或把注意力帶回自己。",
+      keywords: ["不知道", "不確定", "先等等", "等一下", "晚點", "可能只是忙", "先放著", "明天", "睡了", "別想太多"],
+      videoSrc: "/videos/read-0942-neutral-v4.mp4",
+      rewindSrc: "/videos/read-0942-neutral-v4-reverse.mp4",
+      posterSrc: "/assets/shots/S3-N.jpg",
+      previewSubtitle: "她承認自己還不知道答案，先放下手機。隔天早上，沉默終於有了原因。",
+      interpretationEcho: "你沒有急著替沉默定義；你決定先讓答案留到明天。",
+      fallbackDurationSec: 16,
+      screenOverlay: null,
+      messageOverlay: null,
+      priming: {
+        innerNarration:
+          "Mira 還是覺得不舒服，但她承認自己現在不知道原因。她決定先把注意力帶回自己，不在資訊不足時替沉默下結論。",
+        nextAction: "她不再追問，也不急著反擊；她把手機蓋下，去泡茶、讀書，讓答案留到明天。",
+      },
+      videoNarration: [
+        {
+          startSec: 0.65,
+          endSec: 7.8,
+          label: "MIRA · 心理活動",
+          text: "「我現在還不知道發生了什麼。」她先把手機放下，讓今晚不必立刻有答案。",
+          tone: "neutral",
+        },
+        {
+          startSec: 8.2,
+          endSec: 15.8,
+          label: "隔天早上",
+          text: "Yun 的訊息終於到了。沉默有了原因，而她昨晚沒有先讓猜測傷害彼此。",
           tone: "caring",
         },
       ],
@@ -511,6 +548,7 @@ export default function Home() {
       body: JSON.stringify({
         interpretation,
         playerId: playerIdRef.current,
+        defaultBranchId: story.defaultBranchId,
         candidates: story.branches.map(({ id, title, matchHint, keywords, interpretationEcho }) => ({
           id,
           title,
@@ -526,9 +564,12 @@ export default function Home() {
       })
       .catch(
         (): MatchResult => ({
-          branchId: story.branches[loopCount % story.branches.length].id,
+          branchId:
+            story.branches.find((branch) => branch.id === story.defaultBranchId)?.id ??
+            story.branches[loopCount % story.branches.length].id,
           rationale: "Prototype fallback",
           echo:
+            story.branches.find((branch) => branch.id === story.defaultBranchId)?.interpretationEcho ??
             story.branches[loopCount % story.branches.length].interpretationEcho ??
             "你從這份沉默裡，看見了另一個故事。",
           source: "fallback",
@@ -537,7 +578,9 @@ export default function Home() {
 
     const [result] = await Promise.all([matchRequest, wait(MATCHING_MIN_DURATION_MS)]);
     const matchedBranch =
-      story.branches.find((branch) => branch.id === result.branchId) ?? story.branches[0];
+      story.branches.find((branch) => branch.id === result.branchId) ??
+      story.branches.find((branch) => branch.id === story.defaultBranchId) ??
+      story.branches[0];
     const nextEcho =
       result.echo?.trim() ||
       matchedBranch.interpretationEcho ||

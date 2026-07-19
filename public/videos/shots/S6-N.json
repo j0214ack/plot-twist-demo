@@ -1,0 +1,23 @@
+{
+  "shotId": "S6-N",
+  "sourceFile": "source-videos/drive/S6-N.mp4",
+  "sourceSha256": "fe3b3b3574cc65071647e1360065190f3080b2da1baa5f8490d4de168f91a7e8",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Morning light, incoming message, and Mira's visible relief clearly resolve the neutral route."
+}

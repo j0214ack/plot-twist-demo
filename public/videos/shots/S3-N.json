@@ -1,0 +1,23 @@
+{
+  "shotId": "S3-N",
+  "sourceFile": "source-videos/drive/S3-N.mp4",
+  "sourceSha256": "d97a64af51c2f7f7c1164a7c9469692621dc217a4d6b80ee153e73cd23f1662f",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Mira puts the phone aside, makes tea, and reads; the neutral choice to wait is clear."
+}
