@@ -1,69 +1,36 @@
-# 影片素材
+# 影片素材（v4.1 待入庫）
 
-目前網站已改用導演生成的第一批「已讀 9:42」素材。`demo-shotlist.md` 只負責描述故事節點；真正的 runtime 設定仍然放在 `public/story.json`。
+舊版 filler、Batch 1 成品、倒帶檔與原始 zip 已於 2026-07-19 清除。新的故事正典與完整分鏡在 `demo-shotlist.md`；Yun 在 v4.1 是短髮、穿深藍夾克的男性角色。
 
-## Batch 1 對照
+## 等待中的素材
 
-- `S1.mp4` → `read-0942-opening-s1.mp4`：共同開場
-- `S3-H.mp4` + `S2-BASE.mp4` → `read-0942-hostile-s3h-s2base.mp4`：敵意解讀 MVP
-- `S3-C.mp4` + `S2-BASE.mp4` → `read-0942-caring-s3c-s2base.mp4`：關心解讀 MVP
+11 個 MUST clips：
 
-醫院素材原始比例與其他鏡頭不同，因此 branch reel 組接時統一裁成 1280×720、24fps、H.264。這批影片沒有音軌，網站會維持自己的連續環境底噪。Neutral 所需的 `S3-N`、`S6-N` 尚未在這批素材中，因此目前可玩版本只開放 H/C 兩條真正的影片分支。
+- `S1`
+- `S3-H`、`S3-C`
+- `S2-BASE`、`S2-H`、`S2-C`
+- `S4-H`、`S4-C`、`S4-C2`
+- `S5-H`、`S5-C`
 
-## 手機訊息 Overlay
+2 個 stretch clips：`S3-N`、`S6-N`。
 
-目前不把 UI 透視貼合到手機像素，也不需要逐幀 keyframe。`story.json` 可在共同開場設定 `sceneMessageOverlay`，或在單一分支設定 `messageOverlay`：
+原始檔可直接使用 shot ID 命名，例如 `S4-C2.mp4`。素材到齊後，後製流程會：
+
+1. 依 shot ID 驗證 H／C／N 路線與順序。
+2. 統一為 16:9、24fps、H.264，保留可用音軌。
+3. 產生各路線的正向 reel、16× 倒帶版與 poster。
+4. 依新成品的實際時間重做訊息 overlay 與心理旁白 cue。
+5. 更新 `public/story.json`、測試並發布。
+
+## Runtime 暫存狀態
+
+`public/story.json` 目前刻意將所有 `videoSrc`、`rewindSrc`、`sceneVideoSrc` 與 `sceneRewindSrc` 設為 `null`，並清空舊的 `videoNarration` 時間點，避免新影片到來後誤用 Batch 1 的剪接與旁白 timing。
+
+新的正向／倒帶影片確定後，再依實際檔名填回：
 
 ```json
 {
-  "sender": "MIRA → YUN",
-  "messages": ["不急著回。", "妳還好嗎？"],
-  "meta": "已送出 · 22:03",
-  "tone": "caring",
-  "startSec": 0.65,
-  "endSec": 9.85
+  "videoSrc": "/videos/read-0942-hostile-v4.mp4",
+  "rewindSrc": "/videos/read-0942-hostile-v4-reverse.mp4"
 }
 ```
-
-文字會作為半透明的場景外敘事層顯示；`startSec`／`endSec` 只控制它在影片中的出現區間，不追蹤手機位置。
-
-每支 runtime 影片都配有反向 MP4，網站會在倒帶時以 16× 播放：
-
-```json
-"videoSrc": "/videos/read-0942-hostile-s3h-s2base.mp4",
-"rewindSrc": "/videos/read-0942-hostile-s3h-s2base-reverse.mp4"
-```
-
-若 `videoSrc` 是 `null`，網站會播放內建的 prototype cut，方便沒有正式影片時展示完整流程。
-`rewindSrc` 是同一段畫面反向、移除聲音後的 MP4；網站會以 16× 播放它。
-共同 opening 也需提供反向影片，設定在故事根層的 `sceneRewindSrc`。
-正向 opening 會保留在最後一幀作為 Prompt 背景；完整倒帶會以 16× 依序播放
-分支 reverse 與 opening reverse。
-
-產生 reverse MP4 的參考指令：
-
-```bash
-ffmpeg -i branch.mp4 -vf reverse -an -c:v libx264 -crf 23 -preset medium \
-  -pix_fmt yuv420p -movflags +faststart branch-reverse.mp4
-```
-
-## 舊版填充影片
-
-下列 Mixkit 影片保留在資料夾中作為開發 fallback，但目前的 `story.json` 已不再引用：
-
-- 來源：Mixkit — An upset couple while watching television
-- 用途：共同 opening scene
-- 網頁：https://mixkit.co/free-stock-video/an-upset-couple-while-watching-television-42971/
-- 授權：Mixkit Stock Video Free License（可供個人與商業用途）
-
-- 來源：Mixkit — Couple arguing in the kitchen
-- 網頁：https://mixkit.co/free-stock-video/couple-arguing-in-the-kitchen-4501/
-- 授權：Mixkit Stock Video Free License（可供個人與商業用途）
-
-- 來源：Mixkit — Boy surprised by great news from his girlfriend
-- 網頁：https://mixkit.co/free-stock-video/boy-surprised-by-great-news-from-his-girlfriend-8751/
-- 授權：Mixkit Stock Video Free License（可供個人與商業用途）
-
-- 來源：Mixkit — Silhouette lurks at glass door under eerie moonlight
-- 網頁：https://mixkit.co/free-stock-video/silhouette-lurks-at-glass-door-under-eerie-moonlight-100577/
-- 授權：Mixkit Stock Video Free License（可供個人與商業用途）

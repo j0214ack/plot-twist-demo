@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, stat } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import test from "node:test";
 
 const projectRoot = new URL("../", import.meta.url);
@@ -47,19 +47,19 @@ test("matches a player interpretation without an API key", async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        interpretation: "她已讀不回，根本就是故意不在乎我",
+        interpretation: "他已讀不回，根本就是故意不在乎我",
         playerId: "prototype-player-001",
         candidates: [
           {
             id: "hostile",
-            title: "她根本不在乎我",
+            title: "他根本不在乎我",
             matchHint: "玩家把已讀不回解讀為冷淡、忽視或帶有敵意",
             keywords: ["不在乎", "故意", "已讀不回"],
-            interpretationEcho: "你把她的沉默讀成拒絕：她看見了，卻選擇不在乎。",
+            interpretationEcho: "你把他的沉默讀成拒絕：他看見了，卻選擇不在乎。",
           },
           {
             id: "caring",
-            title: "會不會是她那邊出事了",
+            title: "會不會是他那邊出事了",
             matchHint: "玩家擔心對方遇到事情或需要幫忙",
             keywords: ["出事", "擔心", "幫忙"],
           },
@@ -74,49 +74,29 @@ test("matches a player interpretation without an API key", async () => {
   assert.deepEqual(await response.json(), {
     branchId: "hostile",
     rationale: "以 prototype 關鍵語意規則完成配對。",
-    echo: "你把她的沉默讀成拒絕：她看見了，卻選擇不在乎。",
+    echo: "你把他的沉默讀成拒絕：他看見了，卻選擇不在乎。",
     source: "fallback",
   });
 });
 
-test("ships the real batch-one opening plus forward and reverse H/C reels", async () => {
-  const [
-    story,
-    openingVideo,
-    openingRewind,
-    hostileVideo,
-    caringVideo,
-    hostileRewind,
-    caringRewind,
-  ] = await Promise.all([
+test("keeps the v4.1 runtime clear of superseded video assets", async () => {
+  const [story, shotlist, videoFiles] = await Promise.all([
     readFile(new URL("public/story.json", projectRoot), "utf8"),
-    stat(new URL("public/videos/read-0942-opening-s1.mp4", projectRoot)),
-    stat(new URL("public/videos/read-0942-opening-s1-reverse.mp4", projectRoot)),
-    stat(new URL("public/videos/read-0942-hostile-s3h-s2base.mp4", projectRoot)),
-    stat(new URL("public/videos/read-0942-caring-s3c-s2base.mp4", projectRoot)),
-    stat(new URL("public/videos/read-0942-hostile-s3h-s2base-reverse.mp4", projectRoot)),
-    stat(new URL("public/videos/read-0942-caring-s3c-s2base-reverse.mp4", projectRoot)),
+    readFile(new URL("demo-shotlist.md", projectRoot), "utf8"),
+    readdir(new URL("public/videos/", projectRoot)),
   ]);
 
-  assert.match(story, /Batch 1 experiment/);
-  assert.match(story, /\/videos\/read-0942-opening-s1\.mp4/);
-  assert.match(story, /\/videos\/read-0942-opening-s1-reverse\.mp4/);
-  assert.match(story, /\/videos\/read-0942-hostile-s3h-s2base\.mp4/);
-  assert.match(story, /\/videos\/read-0942-caring-s3c-s2base\.mp4/);
-  assert.match(story, /\/videos\/read-0942-hostile-s3h-s2base-reverse\.mp4/);
-  assert.match(story, /\/videos\/read-0942-caring-s3c-s2base-reverse\.mp4/);
+  assert.match(shotlist, /v4\.1/);
+  assert.match(shotlist, /Yun, an East Asian man/);
+  assert.match(shotlist, /S4-C2/);
+  assert.doesNotMatch(story, /\/videos\//);
+  assert.equal(videoFiles.some((name) => /\.(?:mp4|mov|webm|mkv)$/i.test(name)), false);
   assert.match(story, /"sceneMessageOverlay"/);
   assert.match(story, /已讀 · 21:42/);
   assert.match(story, /算了，當我沒說。/);
-  assert.match(story, /妳還好嗎？/);
+  assert.match(story, /你還好嗎？/);
   assert.match(story, /"priming"/);
   assert.match(story, /"videoNarration"/);
   assert.match(story, /她把受傷翻成生氣/);
-  assert.match(story, /YUN · 另一端/);
-  assert.ok(openingVideo.size > 500_000);
-  assert.ok(openingRewind.size > 500_000);
-  assert.ok(hostileVideo.size > 1_000_000);
-  assert.ok(caringVideo.size > 1_000_000);
-  assert.ok(hostileRewind.size > 1_000_000);
-  assert.ok(caringRewind.size > 1_000_000);
+  assert.match(story, /"videoNarration": \[\]/);
 });

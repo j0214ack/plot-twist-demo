@@ -389,7 +389,7 @@ Text/browser playable                   Rewind and reinterpret
 畫面左側播放共同情境，右側顯示兩句玩家輸入：
 
 ```text
-「她根本不在乎我」             → hostile intent
+「他根本不在乎我」             → hostile intent
 「會不會她那邊出事了？」       → care intent
 ```
 
