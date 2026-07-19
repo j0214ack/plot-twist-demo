@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-5-nano",
         store: false,
-        reasoning: { effort: "low" },
+        reasoning: { effort: "minimal" },
         max_output_tokens: 180,
         safety_identifier:
           typeof payload.playerId === "string" && /^[a-zA-Z0-9-]{8,80}$/.test(payload.playerId)
@@ -155,6 +155,7 @@ export async function POST(request: Request) {
           },
         ],
         text: {
+          verbosity: "low",
           format: {
             type: "json_schema",
             name: "story_branch_match",
@@ -163,10 +164,9 @@ export async function POST(request: Request) {
               type: "object",
               properties: {
                 branchId: { type: "string", enum: candidateIds },
-                rationale: { type: "string" },
                 echo: { type: "string" },
               },
-              required: ["branchId", "rationale", "echo"],
+              required: ["branchId", "echo"],
               additionalProperties: false,
             },
           },
@@ -181,7 +181,6 @@ export async function POST(request: Request) {
 
     const result = JSON.parse(outputText) as {
       branchId?: unknown;
-      rationale?: unknown;
       echo?: unknown;
     };
     if (typeof result.branchId !== "string" || !candidateIds.includes(result.branchId)) {
@@ -190,7 +189,7 @@ export async function POST(request: Request) {
 
     return Response.json({
       branchId: result.branchId,
-      rationale: typeof result.rationale === "string" ? result.rationale : "語意配對完成。",
+      rationale: "語意配對完成。",
       echo:
         typeof result.echo === "string" && result.echo.trim()
           ? result.echo.trim().slice(0, 120)
