@@ -1,9 +1,9 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScreenReplacement, type ScreenOverlayConfig } from "./ScreenReplacement";
 
-type Phase = "observe" | "input" | "matching" | "playback" | "return";
+type Phase = "observe" | "input" | "matching" | "echo" | "playback" | "return";
 type RewindStage = "idle" | "branch" | "bridge" | "opening";
 
 type StoryBranch = {
@@ -15,6 +15,7 @@ type StoryBranch = {
   rewindSrc: string | null;
   posterSrc: string;
   previewSubtitle: string;
+  interpretationEcho?: string;
   fallbackDurationSec: number;
   screenOverlay?: ScreenOverlayConfig | null;
 };
@@ -34,6 +35,7 @@ type StoryConfig = {
 type MatchResult = {
   branchId: string;
   rationale: string;
+  echo: string;
   source: "openai" | "fallback";
 };
 
@@ -45,7 +47,7 @@ const DEFAULT_STORY: StoryConfig = {
   sceneVideoSrc: "/videos/filler-opening-upset-couple.mp4",
   sceneRewindSrc: "/videos/filler-opening-upset-couple-reverse.mp4",
   openingPrompt: "你覺得現在發生了什麼？",
-  returnPrompt: "你覺得接下來會發生什麼？",
+  returnPrompt: "這一次，你注意到了什麼？",
   branches: [
     {
       id: "distance",
@@ -56,6 +58,7 @@ const DEFAULT_STORY: StoryConfig = {
       rewindSrc: "/videos/filler-kitchen-argument-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "「你回來了。」她沒有抬頭。桌上的兩個杯子，只有一個還冒著熱氣。",
+      interpretationEcho: "你覺得，這份沉默不是平靜，而是兩個人正在慢慢遠離。",
       fallbackDurationSec: 11,
       screenOverlay: null,
     },
@@ -68,6 +71,7 @@ const DEFAULT_STORY: StoryConfig = {
       rewindSrc: "/videos/filler-secret-surprise-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "她把手機反扣在桌上，深吸一口氣：「我有一件事，一直不知道怎麼告訴你。」",
+      interpretationEcho: "你覺得，她的沉默裡藏著一件還沒說出口的事。",
       fallbackDurationSec: 11,
       screenOverlay: null,
     },
@@ -80,6 +84,7 @@ const DEFAULT_STORY: StoryConfig = {
       rewindSrc: "/videos/filler-threat-door-reverse.mp4",
       posterSrc: "/assets/scene-playback.webp",
       previewSubtitle: "門外傳來第三次敲門聲。她壓低聲音：「不是說好，今晚不要回來嗎？」",
+      interpretationEcho: "你覺得，真正讓房間安靜下來的，是門外那個人。",
       fallbackDurationSec: 11,
       screenOverlay: null,
     },
@@ -90,22 +95,108 @@ const PHASE_LABELS: Record<Phase, string> = {
   observe: "Scene 1 — 場景呈現",
   input: "Scene 2 — 玩家輸入",
   matching: "Scene 3 — 理解中",
-  playback: "Scene 4 — 影片播放",
-  return: "Scene 5 — 回到場景",
+  echo: "Scene 4 — 故事回應",
+  playback: "Scene 5 — 影片播放",
+  return: "Scene 6 — 回到場景",
 };
 
 const REWIND_RATE = 16;
 const BRIDGE_MIN_DURATION_MS = 900;
+const MATCHING_MIN_DURATION_MS = 700;
+const ECHO_DURATION_MS = 1800;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function useAmbientRoomTone() {
+  useEffect(() => {
+    let context: AudioContext | null = null;
+    let roomTone: AudioBufferSourceNode | null = null;
+    let hum: OscillatorNode | null = null;
+
+    const removeStartListeners = () => {
+      window.removeEventListener("pointerdown", startRoomTone);
+      window.removeEventListener("keydown", startRoomTone);
+    };
+
+    const startRoomTone = () => {
+      removeStartListeners();
+
+      if (context) {
+        void context.resume();
+        return;
+      }
+
+      const AudioContextConstructor =
+        window.AudioContext ??
+        (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextConstructor) return;
+
+      context = new AudioContextConstructor();
+      const durationSeconds = 3;
+      const noiseBuffer = context.createBuffer(
+        1,
+        context.sampleRate * durationSeconds,
+        context.sampleRate,
+      );
+      const samples = noiseBuffer.getChannelData(0);
+      let lastSample = 0;
+
+      for (let index = 0; index < samples.length; index += 1) {
+        const whiteNoise = Math.random() * 2 - 1;
+        lastSample = lastSample * 0.985 + whiteNoise * 0.015;
+        samples[index] = lastSample;
+      }
+
+      roomTone = context.createBufferSource();
+      roomTone.buffer = noiseBuffer;
+      roomTone.loop = true;
+
+      const highpass = context.createBiquadFilter();
+      highpass.type = "highpass";
+      highpass.frequency.value = 70;
+
+      const lowpass = context.createBiquadFilter();
+      lowpass.type = "lowpass";
+      lowpass.frequency.value = 520;
+
+      const roomGain = context.createGain();
+      roomGain.gain.value = 0.022;
+      roomTone.connect(highpass).connect(lowpass).connect(roomGain).connect(context.destination);
+
+      hum = context.createOscillator();
+      hum.type = "sine";
+      hum.frequency.value = 58;
+      const humGain = context.createGain();
+      humGain.gain.value = 0.004;
+      hum.connect(humGain).connect(context.destination);
+
+      roomTone.start();
+      hum.start();
+      void context.resume();
+    };
+
+    window.addEventListener("pointerdown", startRoomTone, { once: true });
+    window.addEventListener("keydown", startRoomTone, { once: true });
+
+    return () => {
+      removeStartListeners();
+      roomTone?.stop();
+      hum?.stop();
+      if (context) void context.close();
+    };
+  }, []);
+}
+
 export default function Home() {
+  useAmbientRoomTone();
+
   const [story, setStory] = useState<StoryConfig>(DEFAULT_STORY);
   const [phase, setPhase] = useState<Phase>("observe");
   const [input, setInput] = useState("");
   const [lastInput, setLastInput] = useState("");
+  const [interpretationEcho, setInterpretationEcho] = useState("");
   const [activeBranch, setActiveBranch] = useState<StoryBranch | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -118,12 +209,25 @@ export default function Home() {
   const [videoFailed, setVideoFailed] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const [loopCount, setLoopCount] = useState(0);
-  const [playerId, setPlayerId] = useState("");
   const stageRef = useRef<HTMLElement>(null);
   const openingVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const openingRewindVideoRef = useRef<HTMLVideoElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const playerIdRef = useRef("");
+  const mediaSources = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [
+            story.sceneVideoSrc,
+            story.sceneRewindSrc,
+            ...story.branches.flatMap((branch) => [branch.videoSrc, branch.rewindSrc]),
+          ].filter((source): source is string => Boolean(source)),
+        ),
+      ),
+    [story],
+  );
 
   useEffect(() => {
     fetch("/story.json")
@@ -136,7 +240,7 @@ export default function Home() {
     const storedPlayerId = window.localStorage.getItem("unsaid-player-id");
     const nextPlayerId = storedPlayerId || window.crypto.randomUUID();
     window.localStorage.setItem("unsaid-player-id", nextPlayerId);
-    setPlayerId(nextPlayerId);
+    playerIdRef.current = nextPlayerId;
   }, []);
 
   useEffect(() => {
@@ -213,17 +317,15 @@ export default function Home() {
 
   useEffect(() => {
     if (phase !== "playback" || !isFallbackCut || !isPlaying) return;
-    const timer = window.setInterval(() => {
+    const progressTimer = window.setInterval(() => {
       setElapsed((current) => Math.min(fallbackDuration, current + 0.1));
     }, 100);
-    return () => window.clearInterval(timer);
-  }, [fallbackDuration, isFallbackCut, isPlaying, phase]);
-
-  useEffect(() => {
-    if (phase === "playback" && isFallbackCut && elapsed >= fallbackDuration) {
-      finishPlayback();
-    }
-  }, [elapsed, fallbackDuration, finishPlayback, isFallbackCut, phase]);
+    const finishTimer = window.setTimeout(finishPlayback, fallbackDuration * 1000);
+    return () => {
+      window.clearInterval(progressTimer);
+      window.clearTimeout(finishTimer);
+    };
+  }, [fallbackDuration, finishPlayback, isFallbackCut, isPlaying, phase]);
 
   useEffect(() => {
     if (phase !== "playback" || rewindStage !== "idle" || !activeBranch?.rewindSrc) return;
@@ -265,6 +367,7 @@ export default function Home() {
     if (!interpretation || phase === "matching") return;
 
     setLastInput(interpretation);
+    setInterpretationEcho("");
     setPhase("matching");
 
     const matchRequest = fetch("/api/match", {
@@ -272,12 +375,13 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         interpretation,
-        playerId,
-        candidates: story.branches.map(({ id, title, matchHint, keywords }) => ({
+        playerId: playerIdRef.current,
+        candidates: story.branches.map(({ id, title, matchHint, keywords, interpretationEcho }) => ({
           id,
           title,
           matchHint,
           keywords,
+          interpretationEcho,
         })),
       }),
     })
@@ -289,15 +393,23 @@ export default function Home() {
         (): MatchResult => ({
           branchId: story.branches[loopCount % story.branches.length].id,
           rationale: "Prototype fallback",
+          echo:
+            story.branches[loopCount % story.branches.length].interpretationEcho ??
+            "你從這份沉默裡，看見了另一個故事。",
           source: "fallback",
         }),
       );
 
-    const [result] = await Promise.all([matchRequest, wait(1450)]);
+    const [result] = await Promise.all([matchRequest, wait(MATCHING_MIN_DURATION_MS)]);
     const matchedBranch =
       story.branches.find((branch) => branch.id === result.branchId) ?? story.branches[0];
+    const nextEcho =
+      result.echo?.trim() ||
+      matchedBranch.interpretationEcho ||
+      `你從眼前的沉默裡，看見了「${matchedBranch.title}」。`;
 
     setActiveBranch(matchedBranch);
+    setInterpretationEcho(nextEcho);
     setElapsed(0);
     setIsPlaying(true);
     setRewindStage("idle");
@@ -306,6 +418,8 @@ export default function Home() {
     setOpeningRewindVisible(false);
     setVideoFailed(false);
     setPlaybackBlocked(false);
+    setPhase("echo");
+    await wait(ECHO_DURATION_MS);
     setPhase("playback");
   };
 
@@ -351,9 +465,15 @@ export default function Home() {
   return (
     <main
       ref={stageRef}
-      className={`story-stage phase-${phase}`}
+      className={`story-stage phase-${phase} ${loopCount > 0 ? "has-memory" : ""}`}
       aria-label={`${story.title}：${story.episode}`}
     >
+      <div className="media-preload-rack" aria-hidden="true">
+        {mediaSources.map((source) => (
+          <video key={source} src={source} muted playsInline preload="auto" tabIndex={-1} />
+        ))}
+      </div>
+
       {story.sceneVideoSrc ? (
         <video
           ref={openingVideoRef}
@@ -469,18 +589,23 @@ export default function Home() {
 
       {phase === "observe" && (
         <button className="observe-cue" type="button" onClick={skipOpening}>
-          <span>觀察眼前的場景</span>
-          <small>點一下繼續</small>
+          <span>{loopCount > 0 ? "你又回到了這一刻" : "觀察眼前的場景"}</span>
+          <small>{loopCount > 0 ? "這一次，留意不同的細節" : "點一下繼續"}</small>
         </button>
+      )}
+
+      {phase === "observe" && loopCount > 0 && lastInput && (
+        <aside className="loop-memory" aria-label="上一輪留下的記憶">
+          <span>記憶殘響</span>
+          <p>「{lastInput}」</p>
+        </aside>
       )}
 
       {(phase === "input" || phase === "return") && (
         <form className="interpretation-panel" onSubmit={submitInterpretation}>
           {phase === "return" && activeBranch && (
             <p className="loop-note">
-              上一段故事：{activeBranch.title}
-              <span aria-hidden="true"> · </span>
-              再次改寫它
+              上一輪，你說：「{lastInput}」
             </p>
           )}
           <label htmlFor="interpretation">{prompt}</label>
@@ -492,7 +617,7 @@ export default function Home() {
               onChange={(event) => setInput(event.target.value)}
               maxLength={280}
               autoComplete="off"
-              placeholder={phase === "return" ? "輸入你的預測…" : "輸入你的理解…"}
+              placeholder={phase === "return" ? "這一次，你看見了什麼？" : "輸入你的理解…"}
             />
             <button type="submit" disabled={!input.trim()} aria-label="送出你的解讀">
               <span aria-hidden="true">➤</span>
@@ -523,7 +648,15 @@ export default function Home() {
           <span className="matching-spinner" aria-hidden="true" />
           <h1>正在理解你的想法…</h1>
           <p>「{lastInput}」</p>
-          <small>正在尋找最接近的故事分支</small>
+          <small>讓這個解讀沉進眼前的場景</small>
+        </section>
+      )}
+
+      {phase === "echo" && interpretationEcho && (
+        <section className="understanding-echo" role="status" aria-live="polite">
+          <span>你是這樣理解的</span>
+          <blockquote>{interpretationEcho}</blockquote>
+          <small>故事正在回應你的目光</small>
         </section>
       )}
 

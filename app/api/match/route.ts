@@ -3,6 +3,7 @@ type Candidate = {
   title: string;
   matchHint: string;
   keywords: string[];
+  interpretationEcho: string | undefined;
 };
 
 type MatchPayload = {
@@ -34,6 +35,8 @@ function normalizeCandidates(value: unknown): Candidate[] {
         keywords: Array.isArray(item.keywords)
           ? item.keywords.filter((keyword): keyword is string => typeof keyword === "string").slice(0, 16)
           : [],
+        interpretationEcho:
+          typeof item.interpretationEcho === "string" ? item.interpretationEcho.slice(0, 120) : undefined,
       };
     })
     .filter((candidate): candidate is Candidate => Boolean(candidate));
@@ -65,6 +68,9 @@ function fallbackMatch(interpretation: string, candidates: Candidate[]) {
   return {
     branchId: best.id,
     rationale: "以 prototype 關鍵語意規則完成配對。",
+    echo:
+      best.interpretationEcho ||
+      `你從眼前的沉默裡，看見了「${best.title}」。`,
     source: "fallback" as const,
   };
 }
@@ -128,7 +134,7 @@ export async function POST(request: Request) {
           {
             role: "developer",
             content:
-              "你是互動敘事遊戲的劇情路由器。根據玩家對場景的自由解讀，選出語意最接近的唯一故事分支。不要新增分支；理由保持一句話。",
+              "你是互動敘事遊戲的劇情路由器。根據玩家對場景的自由解讀，選出語意最接近的唯一故事分支。不要新增分支。另將玩家的解讀轉寫成第二人稱的繁體中文敘事回聲，18 至 38 字，可用「你覺得」起頭；不要提到 AI、配對或分支，也不要新增候選故事以外的事實。",
           },
           {
             role: "user",
@@ -145,8 +151,9 @@ export async function POST(request: Request) {
               properties: {
                 branchId: { type: "string", enum: candidateIds },
                 rationale: { type: "string" },
+                echo: { type: "string" },
               },
-              required: ["branchId", "rationale"],
+              required: ["branchId", "rationale", "echo"],
               additionalProperties: false,
             },
           },
@@ -159,7 +166,11 @@ export async function POST(request: Request) {
     const outputText = extractOutputText(responseData);
     if (!outputText) return Response.json(fallback);
 
-    const result = JSON.parse(outputText) as { branchId?: unknown; rationale?: unknown };
+    const result = JSON.parse(outputText) as {
+      branchId?: unknown;
+      rationale?: unknown;
+      echo?: unknown;
+    };
     if (typeof result.branchId !== "string" || !candidateIds.includes(result.branchId)) {
       return Response.json(fallback);
     }
@@ -167,6 +178,10 @@ export async function POST(request: Request) {
     return Response.json({
       branchId: result.branchId,
       rationale: typeof result.rationale === "string" ? result.rationale : "語意配對完成。",
+      echo:
+        typeof result.echo === "string" && result.echo.trim()
+          ? result.echo.trim().slice(0, 120)
+          : fallback.echo,
       source: "openai",
     });
   } catch {

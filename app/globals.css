@@ -46,6 +46,22 @@ button {
   background: #090705;
 }
 
+.media-preload-rack {
+  position: fixed;
+  top: 0;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.media-preload-rack video {
+  width: 1px;
+  height: 1px;
+}
+
 .scene-media {
   position: absolute;
   z-index: -4;
@@ -103,6 +119,21 @@ button {
 .phase-matching .opening-video {
   filter: saturate(0.68) brightness(0.5) contrast(1.06);
   transition: filter 650ms ease;
+}
+
+.phase-echo .opening-video {
+  filter: saturate(0.62) brightness(0.42) contrast(1.08);
+  transform: scale(1.012);
+  transition: filter 650ms ease, transform 6s ease;
+}
+
+.has-memory .opening-video {
+  filter: saturate(0.72) brightness(0.74) contrast(1.08) sepia(0.07);
+}
+
+.has-memory.phase-matching .opening-video,
+.has-memory.phase-echo .opening-video {
+  filter: saturate(0.62) brightness(0.42) contrast(1.08) sepia(0.07);
 }
 
 .playback-still {
@@ -292,9 +323,13 @@ button {
 }
 
 .loop-note {
+  max-width: 100%;
   margin: -4px 0 12px;
+  overflow: hidden;
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 10px;
   font-weight: 630;
   letter-spacing: 0.1em;
@@ -442,6 +477,72 @@ button {
   color: rgba(255, 255, 255, 0.42);
   font-size: 13px;
   letter-spacing: 0.04em;
+}
+
+.understanding-echo {
+  position: absolute;
+  z-index: 8;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  width: min(760px, calc(100vw - 48px));
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.9);
+  transform: translate(-50%, -48%);
+  animation: understanding-echo-in 700ms cubic-bezier(0.2, 0.72, 0.2, 1) both;
+}
+
+.understanding-echo > span,
+.loop-memory > span {
+  color: var(--warm);
+  font-size: 10px;
+  font-weight: 720;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.understanding-echo blockquote {
+  max-width: 720px;
+  margin: 20px 0 18px;
+  text-wrap: balance;
+  font-family: "Noto Serif TC", "Songti TC", Georgia, serif;
+  font-size: clamp(25px, 2.6vw, 42px);
+  font-weight: 420;
+  letter-spacing: 0.035em;
+  line-height: 1.55;
+}
+
+.understanding-echo small {
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+}
+
+.loop-memory {
+  position: absolute;
+  z-index: 6;
+  top: clamp(94px, 15vh, 160px);
+  left: 50%;
+  width: min(620px, calc(100vw - 56px));
+  text-align: center;
+  text-shadow: 0 2px 20px #000;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: loop-memory-dissolve 4.8s ease both;
+}
+
+.loop-memory p {
+  max-width: 100%;
+  margin: 13px 0 0;
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.7);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Noto Serif TC", "Songti TC", Georgia, serif;
+  font-size: clamp(15px, 1.35vw, 20px);
+  letter-spacing: 0.025em;
 }
 
 .story-continuation {
@@ -618,6 +719,38 @@ button {
   }
 }
 
+@keyframes understanding-echo-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -43%);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -48%);
+    filter: blur(0);
+  }
+}
+
+@keyframes loop-memory-dissolve {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+    filter: blur(4px);
+  }
+  18%,
+  62% {
+    opacity: 0.72;
+    transform: translate(-50%, 0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -5px);
+    filter: blur(2px);
+  }
+}
+
 @keyframes subtitle-in {
   from {
     opacity: 0;
@@ -706,6 +839,16 @@ button {
     bottom: 128px;
     width: calc(100vw - 34px);
     font-size: 15px;
+  }
+
+  .understanding-echo blockquote {
+    margin-top: 16px;
+    font-size: 24px;
+    line-height: 1.5;
+  }
+
+  .loop-memory {
+    top: 106px;
   }
 
   .episode-counter {

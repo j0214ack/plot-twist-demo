@@ -7,7 +7,7 @@
   "sceneVideoSrc": "/videos/filler-opening-upset-couple.mp4",
   "sceneRewindSrc": "/videos/filler-opening-upset-couple-reverse.mp4",
   "openingPrompt": "你覺得現在發生了什麼？",
-  "returnPrompt": "你覺得接下來會發生什麼？",
+  "returnPrompt": "這一次，你注意到了什麼？",
   "branches": [
     {
       "id": "distance",
@@ -18,6 +18,7 @@
       "rewindSrc": "/videos/filler-kitchen-argument-reverse.mp4",
       "posterSrc": "/assets/scene-playback.webp",
       "previewSubtitle": "「你回來了。」她沒有抬頭。桌上的兩個杯子，只有一個還冒著熱氣。",
+      "interpretationEcho": "你覺得，這份沉默不是平靜，而是兩個人正在慢慢遠離。",
       "fallbackDurationSec": 11,
       "screenOverlay": null
     },
@@ -30,6 +31,7 @@
       "rewindSrc": "/videos/filler-secret-surprise-reverse.mp4",
       "posterSrc": "/assets/scene-playback.webp",
       "previewSubtitle": "她把手機反扣在桌上，深吸一口氣：「我有一件事，一直不知道怎麼告訴你。」",
+      "interpretationEcho": "你覺得，她的沉默裡藏著一件還沒說出口的事。",
       "fallbackDurationSec": 11,
       "screenOverlay": null
     },
@@ -42,6 +44,7 @@
       "rewindSrc": "/videos/filler-threat-door-reverse.mp4",
       "posterSrc": "/assets/scene-playback.webp",
       "previewSubtitle": "門外傳來第三次敲門聲。她壓低聲音：「不是說好，今晚不要回來嗎？」",
+      "interpretationEcho": "你覺得，真正讓房間安靜下來的，是門外那個人。",
       "fallbackDurationSec": 11,
       "screenOverlay": null
     }

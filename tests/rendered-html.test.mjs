@@ -55,6 +55,7 @@ test("matches a player interpretation without an API key", async () => {
             title: "沉默不是冷淡",
             matchHint: "兩人正在冷戰、關係疏遠",
             keywords: ["冷戰", "吵架"],
+            interpretationEcho: "你覺得，這份沉默不是平靜，而是兩個人正在慢慢遠離。",
           },
           {
             id: "secret",
@@ -73,6 +74,7 @@ test("matches a player interpretation without an API key", async () => {
   assert.deepEqual(await response.json(), {
     branchId: "distance",
     rationale: "以 prototype 關鍵語意規則完成配對。",
+    echo: "你覺得，這份沉默不是平靜，而是兩個人正在慢慢遠離。",
     source: "fallback",
   });
 });
