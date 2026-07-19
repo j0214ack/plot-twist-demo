@@ -71,6 +71,12 @@ button {
   background: #000;
 }
 
+.opening-video {
+  background: #090705;
+  filter: saturate(0.78) brightness(0.78) contrast(1.06);
+  animation: scene-arrival 1.1s ease both;
+}
+
 .playback-still {
   filter: saturate(0.88) contrast(1.04);
   transform: scale(1.21);

@@ -22,6 +22,7 @@ type StoryConfig = {
   title: string;
   episode: string;
   sceneImage: string;
+  sceneVideoSrc?: string | null;
   openingPrompt: string;
   returnPrompt: string;
   branches: StoryBranch[];
@@ -38,6 +39,7 @@ const DEFAULT_STORY: StoryConfig = {
   title: "未說出口",
   episode: "一個平常的晚上",
   sceneImage: "/assets/scene-observe.webp",
+  sceneVideoSrc: "/videos/filler-opening-upset-couple.mp4",
   openingPrompt: "你覺得現在發生了什麼？",
   returnPrompt: "你覺得接下來會發生什麼？",
   branches: [
@@ -120,10 +122,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (phase !== "observe") return;
+    if (phase !== "observe" || story.sceneVideoSrc) return;
     const timer = window.setTimeout(() => setPhase("input"), 2600);
     return () => window.clearTimeout(timer);
-  }, [phase]);
+  }, [phase, story.sceneVideoSrc]);
 
   useEffect(() => {
     if (phase === "input" || phase === "return") {
@@ -238,6 +240,17 @@ export default function Home() {
             alt="男人站在餐桌旁，女人坐在桌前回頭看他"
           />
         )
+      ) : phase === "observe" && story.sceneVideoSrc ? (
+        <video
+          className="scene-media opening-video"
+          src={story.sceneVideoSrc}
+          poster={sceneImage}
+          autoPlay
+          muted
+          playsInline
+          preload="auto"
+          onEnded={() => setPhase("input")}
+        />
       ) : (
         <img
           className="scene-media scene-base"

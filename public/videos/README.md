@@ -18,6 +18,11 @@
 
 ## 目前的填充影片
 
+- 來源：Mixkit — An upset couple while watching television
+- 用途：共同 opening scene
+- 網頁：https://mixkit.co/free-stock-video/an-upset-couple-while-watching-television-42971/
+- 授權：Mixkit Stock Video Free License（可供個人與商業用途）
+
 - 來源：Mixkit — Couple arguing in the kitchen
 - 網頁：https://mixkit.co/free-stock-video/couple-arguing-in-the-kitchen-4501/
 - 授權：Mixkit Stock Video Free License（可供個人與商業用途）
