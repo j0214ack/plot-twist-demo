@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
 
-const title = "未說出口｜AI 敘事遊戲 Prototype";
-const description = "說出你如何理解眼前的場景，讓故事沿著你的想法發展。";
+const title = "已讀 9:42｜AI 敘事遊戲 Prototype";
+const description = "她讀了訊息，卻沒有回。說出你的解讀，看看同一個晚上會走向哪一種可能。";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
