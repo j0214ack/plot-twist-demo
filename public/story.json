@@ -1,0 +1,44 @@
+{
+  "_note": "Hackathon prototype placeholder content only. Replace all branches with the team's final scripts and videos.",
+  "id": "unsaid-01",
+  "title": "未說出口",
+  "episode": "一個平常的晚上",
+  "sceneImage": "/assets/scene-observe.webp",
+  "openingPrompt": "你覺得現在發生了什麼？",
+  "returnPrompt": "你覺得接下來會發生什麼？",
+  "branches": [
+    {
+      "id": "distance",
+      "title": "沉默不是冷淡",
+      "matchHint": "兩人正在冷戰、關係疏遠，或其中一人對另一人感到失望。",
+      "keywords": ["冷戰", "吵架", "生氣", "疏遠", "分手", "失望", "尷尬", "沉默"],
+      "videoSrc": "/videos/filler-kitchen-argument.mp4",
+      "posterSrc": "/assets/scene-playback.webp",
+      "previewSubtitle": "「你回來了。」她沒有抬頭。桌上的兩個杯子，只有一個還冒著熱氣。",
+      "fallbackDurationSec": 11,
+      "screenOverlay": null
+    },
+    {
+      "id": "secret",
+      "title": "被藏起來的事",
+      "matchHint": "她似乎隱瞞了秘密、準備驚喜，或正在等待適合開口的時機。",
+      "keywords": ["秘密", "隱瞞", "驚喜", "禮物", "準備", "等待", "開口", "懷孕"],
+      "videoSrc": "/videos/filler-kitchen-argument.mp4",
+      "posterSrc": "/assets/scene-playback.webp",
+      "previewSubtitle": "她把手機反扣在桌上，深吸一口氣：「我有一件事，一直不知道怎麼告訴你。」",
+      "fallbackDurationSec": 11,
+      "screenOverlay": null
+    },
+    {
+      "id": "threat",
+      "title": "門外的人",
+      "matchHint": "房間裡有危險、有人跟蹤他們，或兩人正在躲避某個即將到來的人。",
+      "keywords": ["危險", "跟蹤", "躲", "門外", "陌生人", "害怕", "威脅", "報警"],
+      "videoSrc": "/videos/filler-kitchen-argument.mp4",
+      "posterSrc": "/assets/scene-playback.webp",
+      "previewSubtitle": "門外傳來第三次敲門聲。她壓低聲音：「不是說好，今晚不要回來嗎？」",
+      "fallbackDurationSec": 11,
+      "screenOverlay": null
+    }
+  ]
+}
