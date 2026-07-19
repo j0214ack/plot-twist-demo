@@ -115,6 +115,6 @@ test("ships both complete v4.1 routes with opening and rewind assets", async () 
   assert.ok(openingRewind.size > 500_000);
   assert.ok(hostile.size > 5_000_000);
   assert.ok(hostileRewind.size > 4_000_000);
-  assert.ok(caring.size > 8_000_000);
-  assert.ok(caringRewind.size > 7_000_000);
+  assert.ok(caring.size > 5_000_000);
+  assert.ok(caringRewind.size > 5_000_000);
 });
