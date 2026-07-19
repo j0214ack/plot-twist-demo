@@ -167,6 +167,108 @@ button {
   object-fit: cover;
 }
 
+.cinematic-message-overlay {
+  --message-accent: #d2ad7a;
+  position: absolute;
+  z-index: 5;
+  top: clamp(126px, 18vh, 190px);
+  right: clamp(28px, 7vw, 112px);
+  width: min(430px, 38vw);
+  min-width: 310px;
+  padding: 23px 30px 22px 28px;
+  color: rgba(255, 255, 255, 0.96);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.82);
+  pointer-events: none;
+  isolation: isolate;
+  animation: message-overlay-in 540ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+.cinematic-message-overlay::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-left: 1px solid color-mix(in srgb, var(--message-accent) 74%, transparent);
+  background:
+    linear-gradient(102deg, rgba(8, 11, 13, 0.58), rgba(8, 11, 13, 0.23) 64%, transparent),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent);
+  box-shadow: -24px 22px 70px rgba(0, 0, 0, 0.23);
+  content: "";
+  clip-path: polygon(0 0, 94% 0, 100% 100%, 0 100%);
+  backdrop-filter: blur(12px) saturate(0.72);
+}
+
+.message-context-branch {
+  top: clamp(118px, 19vh, 205px);
+  right: auto;
+  left: clamp(28px, 7vw, 112px);
+}
+
+.cinematic-message-overlay.tone-hostile {
+  --message-accent: #d69786;
+}
+
+.cinematic-message-overlay.tone-caring {
+  --message-accent: #9ccad0;
+}
+
+.message-overlay-sender,
+.message-overlay-copy p,
+.message-overlay-meta {
+  margin: 0;
+}
+
+.message-overlay-sender {
+  color: var(--message-accent);
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.message-overlay-copy {
+  display: grid;
+  gap: 2px;
+  margin: 15px 0 17px;
+}
+
+.message-overlay-copy p {
+  text-wrap: balance;
+  font-size: clamp(24px, 2.25vw, 38px);
+  font-weight: 360;
+  letter-spacing: 0.025em;
+  line-height: 1.32;
+  opacity: 0;
+  animation: message-line-in 420ms 130ms ease forwards;
+}
+
+.message-overlay-copy p:nth-child(2) {
+  animation-delay: 310ms;
+}
+
+.message-overlay-copy p:nth-child(3) {
+  animation-delay: 490ms;
+}
+
+.message-overlay-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  animation: message-line-in 420ms 520ms ease forwards;
+}
+
+.message-overlay-meta span {
+  width: 22px;
+  height: 1px;
+  background: var(--message-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--message-accent) 64%, transparent);
+}
+
 .cinema-vignette,
 .top-shade {
   position: absolute;
@@ -677,6 +779,30 @@ button {
   }
 }
 
+@keyframes message-overlay-in {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 8px, 0);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes message-line-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 7px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @keyframes playback-drift {
   from {
     transform: scale(1.21) translate3d(0, 0, 0);
@@ -835,6 +961,24 @@ button {
     display: none;
   }
 
+  .cinematic-message-overlay,
+  .message-context-branch {
+    top: 112px;
+    right: 14px;
+    left: 14px;
+    width: auto;
+    min-width: 0;
+    padding: 18px 20px 17px;
+  }
+
+  .message-overlay-copy {
+    margin: 12px 0 14px;
+  }
+
+  .message-overlay-copy p {
+    font-size: clamp(22px, 7.2vw, 30px);
+  }
+
   .branch-subtitle {
     bottom: 128px;
     width: calc(100vw - 34px);
@@ -878,6 +1022,23 @@ button {
 
   .branch-subtitle {
     bottom: 108px;
+  }
+
+  .cinematic-message-overlay,
+  .message-context-branch {
+    top: 76px;
+    right: 24px;
+    left: auto;
+    width: min(390px, 42vw);
+    padding: 15px 21px;
+  }
+
+  .message-overlay-copy {
+    margin: 9px 0 10px;
+  }
+
+  .message-overlay-copy p {
+    font-size: 22px;
   }
 }
 

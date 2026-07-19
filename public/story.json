@@ -6,6 +6,13 @@
   "sceneImage": "/assets/read-0942-opening-poster.jpg",
   "sceneVideoSrc": "/videos/read-0942-opening-s1.mp4",
   "sceneRewindSrc": "/videos/read-0942-opening-s1-reverse.mp4",
+  "sceneMessageOverlay": {
+    "sender": "MIRA → YUN",
+    "messages": ["妳到家了嗎？", "方便的話，回我一下。"],
+    "meta": "已讀 · 21:42",
+    "tone": "neutral",
+    "startSec": 0.65
+  },
   "openingPrompt": "她讀了訊息，卻沒有回。你覺得這代表什麼？",
   "returnPrompt": "同一個已讀。這一次，你怎麼解讀？",
   "branches": [
@@ -20,7 +27,15 @@
       "previewSubtitle": "她把沉默讀成拒絕，於是也用一句冷淡的話回應。鏡頭轉向醫院的走廊。",
       "interpretationEcho": "你把她的沉默讀成拒絕：她看見了，卻選擇不在乎。",
       "fallbackDurationSec": 15,
-      "screenOverlay": null
+      "screenOverlay": null,
+      "messageOverlay": {
+        "sender": "MIRA → YUN",
+        "messages": ["算了，當我沒說。"],
+        "meta": "已送出 · 22:03",
+        "tone": "hostile",
+        "startSec": 0.65,
+        "endSec": 4.85
+      }
     },
     {
       "id": "caring",
@@ -33,7 +48,15 @@
       "previewSubtitle": "她沒有急著定罪，而是先問了一句：妳還好嗎？鏡頭轉向醫院的走廊。",
       "interpretationEcho": "你沒有急著定罪；你懷疑，沉默也許是她正在求救。",
       "fallbackDurationSec": 20,
-      "screenOverlay": null
+      "screenOverlay": null,
+      "messageOverlay": {
+        "sender": "MIRA → YUN",
+        "messages": ["不急著回。", "妳還好嗎？"],
+        "meta": "已送出 · 22:03",
+        "tone": "caring",
+        "startSec": 0.65,
+        "endSec": 9.85
+      }
     }
   ]
 }

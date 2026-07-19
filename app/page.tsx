@@ -6,6 +6,15 @@ import { ScreenReplacement, type ScreenOverlayConfig } from "./ScreenReplacement
 type Phase = "observe" | "input" | "matching" | "echo" | "playback" | "return";
 type RewindStage = "idle" | "branch" | "bridge" | "opening";
 
+type CinematicMessageOverlayConfig = {
+  sender: string;
+  messages: string[];
+  meta: string;
+  tone?: "neutral" | "hostile" | "caring";
+  startSec?: number;
+  endSec?: number;
+};
+
 type StoryBranch = {
   id: string;
   title: string;
@@ -18,6 +27,7 @@ type StoryBranch = {
   interpretationEcho?: string;
   fallbackDurationSec: number;
   screenOverlay?: ScreenOverlayConfig | null;
+  messageOverlay?: CinematicMessageOverlayConfig | null;
 };
 
 type StoryConfig = {
@@ -27,6 +37,7 @@ type StoryConfig = {
   sceneImage: string;
   sceneVideoSrc?: string | null;
   sceneRewindSrc?: string | null;
+  sceneMessageOverlay?: CinematicMessageOverlayConfig | null;
   openingPrompt: string;
   returnPrompt: string;
   branches: StoryBranch[];
@@ -46,6 +57,13 @@ const DEFAULT_STORY: StoryConfig = {
   sceneImage: "/assets/read-0942-opening-poster.jpg",
   sceneVideoSrc: "/videos/read-0942-opening-s1.mp4",
   sceneRewindSrc: "/videos/read-0942-opening-s1-reverse.mp4",
+  sceneMessageOverlay: {
+    sender: "MIRA → YUN",
+    messages: ["妳到家了嗎？", "方便的話，回我一下。"],
+    meta: "已讀 · 21:42",
+    tone: "neutral",
+    startSec: 0.65,
+  },
   openingPrompt: "她讀了訊息，卻沒有回。你覺得這代表什麼？",
   returnPrompt: "同一個已讀。這一次，你怎麼解讀？",
   branches: [
@@ -61,6 +79,14 @@ const DEFAULT_STORY: StoryConfig = {
       interpretationEcho: "你把她的沉默讀成拒絕：她看見了，卻選擇不在乎。",
       fallbackDurationSec: 15,
       screenOverlay: null,
+      messageOverlay: {
+        sender: "MIRA → YUN",
+        messages: ["算了，當我沒說。"],
+        meta: "已送出 · 22:03",
+        tone: "hostile",
+        startSec: 0.65,
+        endSec: 4.85,
+      },
     },
     {
       id: "caring",
@@ -74,6 +100,14 @@ const DEFAULT_STORY: StoryConfig = {
       interpretationEcho: "你沒有急著定罪；你懷疑，沉默也許是她正在求救。",
       fallbackDurationSec: 20,
       screenOverlay: null,
+      messageOverlay: {
+        sender: "MIRA → YUN",
+        messages: ["不急著回。", "妳還好嗎？"],
+        meta: "已送出 · 22:03",
+        tone: "caring",
+        startSec: 0.65,
+        endSec: 9.85,
+      },
     },
   ],
 };
@@ -94,6 +128,32 @@ const ECHO_DURATION_MS = 1800;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function CinematicMessageOverlay({
+  config,
+  context,
+}: {
+  config: CinematicMessageOverlayConfig;
+  context: "opening" | "branch";
+}) {
+  return (
+    <aside
+      className={`cinematic-message-overlay message-context-${context} tone-${config.tone ?? "neutral"}`}
+      aria-label={`${config.sender} 的手機訊息：${config.messages.join("；")}，${config.meta}`}
+    >
+      <p className="message-overlay-sender">{config.sender}</p>
+      <div className="message-overlay-copy">
+        {config.messages.map((message) => (
+          <p key={message}>{message}</p>
+        ))}
+      </div>
+      <p className="message-overlay-meta">
+        <span aria-hidden="true" />
+        {config.meta}
+      </p>
+    </aside>
+  );
 }
 
 function useAmbientRoomTone() {
@@ -184,6 +244,8 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [lastInput, setLastInput] = useState("");
   const [interpretationEcho, setInterpretationEcho] = useState("");
+  const [openingTime, setOpeningTime] = useState(0);
+  const [branchTime, setBranchTime] = useState(0);
   const [activeBranch, setActiveBranch] = useState<StoryBranch | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -274,6 +336,8 @@ export default function Home() {
       setOpeningRewindVisible(false);
       setOpeningBufferReady(false);
       setBridgeStartedAt(null);
+      setOpeningTime(0);
+      setBranchTime(0);
       setRewindStage("idle");
       setPhase("observe");
     };
@@ -398,6 +462,7 @@ export default function Home() {
     setActiveBranch(matchedBranch);
     setInterpretationEcho(nextEcho);
     setElapsed(0);
+    setBranchTime(0);
     setIsPlaying(true);
     setRewindStage("idle");
     setBranchVisible(false);
@@ -441,6 +506,7 @@ export default function Home() {
     }
 
     openingVideo.addEventListener("seeked", showOpeningPrompt, { once: true });
+    setOpeningTime(target);
     openingVideo.currentTime = target;
   };
 
@@ -448,6 +514,21 @@ export default function Home() {
     phase === "playback" &&
     Boolean(activeBranch) &&
     (rewindStage === "idle" || rewindStage === "branch");
+  const openingMessageOverlay = story.sceneMessageOverlay;
+  const showOpeningMessageOverlay =
+    Boolean(openingMessageOverlay) &&
+    rewindStage === "idle" &&
+    (phase === "observe" || phase === "input" || phase === "return") &&
+    (!story.sceneVideoSrc || openingTime >= (openingMessageOverlay?.startSec ?? 0));
+  const branchMessageOverlay = activeBranch?.messageOverlay;
+  const branchMessageTime = isFallbackCut ? elapsed : branchTime;
+  const showBranchMessageOverlay =
+    Boolean(branchMessageOverlay) &&
+    phase === "playback" &&
+    rewindStage === "idle" &&
+    isPlaying &&
+    branchMessageTime >= (branchMessageOverlay?.startSec ?? 0) &&
+    branchMessageTime <= (branchMessageOverlay?.endSec ?? Number.POSITIVE_INFINITY);
 
   return (
     <main
@@ -471,6 +552,7 @@ export default function Home() {
           muted
           playsInline
           preload="auto"
+          onTimeUpdate={(event) => setOpeningTime(event.currentTarget.currentTime)}
           onEnded={() => {
             if (rewindStage === "idle" && phase === "observe") showOpeningPrompt();
           }}
@@ -495,6 +577,7 @@ export default function Home() {
             autoPlay={rewindStage === "idle" && isPlaying}
             playsInline
             preload="auto"
+            onTimeUpdate={(event) => setBranchTime(event.currentTarget.currentTime)}
             onCanPlay={(event) => {
               if (rewindStage !== "idle" || !isPlaying) return;
               event.currentTarget.play().catch(() => setPlaybackBlocked(true));
@@ -560,6 +643,22 @@ export default function Home() {
 
       <div className="cinema-vignette" aria-hidden="true" />
       <div className="top-shade" aria-hidden="true" />
+
+      {showOpeningMessageOverlay && openingMessageOverlay && (
+        <CinematicMessageOverlay
+          key={`opening-${loopCount}`}
+          config={openingMessageOverlay}
+          context="opening"
+        />
+      )}
+
+      {showBranchMessageOverlay && branchMessageOverlay && (
+        <CinematicMessageOverlay
+          key={`branch-${activeBranch?.id}`}
+          config={branchMessageOverlay}
+          context="branch"
+        />
+      )}
 
       {(phase !== "playback" || rewindStage === "bridge") && (
         <header className="scene-header">

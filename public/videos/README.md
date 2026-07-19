@@ -10,6 +10,23 @@
 
 醫院素材原始比例與其他鏡頭不同，因此 branch reel 組接時統一裁成 1280×720、24fps、H.264。這批影片沒有音軌，網站會維持自己的連續環境底噪。Neutral 所需的 `S3-N`、`S6-N` 尚未在這批素材中，因此目前可玩版本只開放 H/C 兩條真正的影片分支。
 
+## 手機訊息 Overlay
+
+目前不把 UI 透視貼合到手機像素，也不需要逐幀 keyframe。`story.json` 可在共同開場設定 `sceneMessageOverlay`，或在單一分支設定 `messageOverlay`：
+
+```json
+{
+  "sender": "MIRA → YUN",
+  "messages": ["不急著回。", "妳還好嗎？"],
+  "meta": "已送出 · 22:03",
+  "tone": "caring",
+  "startSec": 0.65,
+  "endSec": 9.85
+}
+```
+
+文字會作為半透明的場景外敘事層顯示；`startSec`／`endSec` 只控制它在影片中的出現區間，不追蹤手機位置。
+
 每支 runtime 影片都配有反向 MP4，網站會在倒帶時以 16× 播放：
 
 ```json

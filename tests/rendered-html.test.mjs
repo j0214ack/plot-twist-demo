@@ -105,6 +105,10 @@ test("ships the real batch-one opening plus forward and reverse H/C reels", asyn
   assert.match(story, /\/videos\/read-0942-caring-s3c-s2base\.mp4/);
   assert.match(story, /\/videos\/read-0942-hostile-s3h-s2base-reverse\.mp4/);
   assert.match(story, /\/videos\/read-0942-caring-s3c-s2base-reverse\.mp4/);
+  assert.match(story, /"sceneMessageOverlay"/);
+  assert.match(story, /已讀 · 21:42/);
+  assert.match(story, /算了，當我沒說。/);
+  assert.match(story, /妳還好嗎？/);
   assert.ok(openingVideo.size > 500_000);
   assert.ok(openingRewind.size > 500_000);
   assert.ok(hostileVideo.size > 1_000_000);
