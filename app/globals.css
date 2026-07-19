@@ -71,6 +71,16 @@ button {
   background: #000;
 }
 
+.branch-video {
+  z-index: -4;
+  opacity: 0;
+  transition: opacity 100ms linear;
+}
+
+.branch-video.is-visible {
+  opacity: 1;
+}
+
 .rewind-video {
   z-index: -3;
   opacity: 0;
@@ -84,12 +94,19 @@ button {
 }
 
 .opening-video {
+  z-index: -5;
   background: #090705;
   filter: saturate(0.78) brightness(0.78) contrast(1.06);
   animation: scene-arrival 1.1s ease both;
 }
 
+.phase-matching .opening-video {
+  filter: saturate(0.68) brightness(0.5) contrast(1.06);
+  transition: filter 650ms ease;
+}
+
 .playback-still {
+  z-index: -4;
   filter: saturate(0.88) contrast(1.04);
   transform: scale(1.21);
 }
@@ -349,6 +366,34 @@ button {
   text-align: center;
   font-size: 10px;
   letter-spacing: 0.08em;
+}
+
+.rewind-bridge-panel {
+  pointer-events: none;
+}
+
+.rewind-bridge-prompt {
+  margin: 0 0 24px;
+  text-align: center;
+  text-wrap: balance;
+  font-size: clamp(23px, 2vw, 32px);
+  font-weight: 390;
+  letter-spacing: 0.025em;
+  line-height: 1.25;
+}
+
+.rewind-bridge-panel .input-shell {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.rewind-bridge-panel .input-shell input {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.rewind-buffer-status {
+  color: rgba(210, 173, 122, 0.76);
+  animation: rewind-status-pulse 700ms ease-in-out infinite alternate;
 }
 
 .matching-state {

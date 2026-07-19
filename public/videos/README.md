@@ -16,7 +16,10 @@
 ```
 
 若 `videoSrc` 是 `null`，網站會播放內建的 prototype cut，方便沒有正式影片時展示完整流程。
-`rewindSrc` 是同一段畫面反向、移除聲音後的 MP4；網站會以 4× 播放它。
+`rewindSrc` 是同一段畫面反向、移除聲音後的 MP4；網站會以 16× 播放它。
+共同 opening 也需提供反向影片，設定在故事根層的 `sceneRewindSrc`。
+正向 opening 會保留在最後一幀作為 Prompt 背景；完整倒帶會以 16× 依序播放
+分支 reverse 與 opening reverse。
 
 產生 reverse MP4 的參考指令：
 

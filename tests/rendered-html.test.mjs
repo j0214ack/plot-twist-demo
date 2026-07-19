@@ -81,6 +81,7 @@ test("ships an opening clip plus forward and reverse branch MP4s", async () => {
   const [
     story,
     openingVideo,
+    openingRewind,
     distanceVideo,
     secretVideo,
     threatVideo,
@@ -90,6 +91,7 @@ test("ships an opening clip plus forward and reverse branch MP4s", async () => {
   ] = await Promise.all([
     readFile(new URL("public/story.json", projectRoot), "utf8"),
     stat(new URL("public/videos/filler-opening-upset-couple.mp4", projectRoot)),
+    stat(new URL("public/videos/filler-opening-upset-couple-reverse.mp4", projectRoot)),
     stat(new URL("public/videos/filler-kitchen-argument.mp4", projectRoot)),
     stat(new URL("public/videos/filler-secret-surprise.mp4", projectRoot)),
     stat(new URL("public/videos/filler-threat-door.mp4", projectRoot)),
@@ -100,6 +102,7 @@ test("ships an opening clip plus forward and reverse branch MP4s", async () => {
 
   assert.match(story, /Hackathon prototype placeholder content only/);
   assert.match(story, /\/videos\/filler-opening-upset-couple\.mp4/);
+  assert.match(story, /\/videos\/filler-opening-upset-couple-reverse\.mp4/);
   assert.match(story, /\/videos\/filler-kitchen-argument\.mp4/);
   assert.match(story, /\/videos\/filler-secret-surprise\.mp4/);
   assert.match(story, /\/videos\/filler-threat-door\.mp4/);
@@ -107,6 +110,7 @@ test("ships an opening clip plus forward and reverse branch MP4s", async () => {
   assert.match(story, /\/videos\/filler-secret-surprise-reverse\.mp4/);
   assert.match(story, /\/videos\/filler-threat-door-reverse\.mp4/);
   assert.ok(openingVideo.size > 1_000_000);
+  assert.ok(openingRewind.size > 1_000_000);
   assert.ok(distanceVideo.size > 1_000_000);
   assert.ok(secretVideo.size > 1_000_000);
   assert.ok(threatVideo.size > 1_000_000);

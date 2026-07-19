@@ -5,6 +5,7 @@
   "episode": "一個平常的晚上",
   "sceneImage": "/assets/scene-observe.webp",
   "sceneVideoSrc": "/videos/filler-opening-upset-couple.mp4",
+  "sceneRewindSrc": "/videos/filler-opening-upset-couple-reverse.mp4",
   "openingPrompt": "你覺得現在發生了什麼？",
   "returnPrompt": "你覺得接下來會發生什麼？",
   "branches": [

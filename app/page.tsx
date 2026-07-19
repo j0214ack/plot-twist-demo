@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ScreenReplacement, type ScreenOverlayConfig } from "./ScreenReplacement";
 
 type Phase = "observe" | "input" | "matching" | "playback" | "return";
+type RewindStage = "idle" | "branch" | "bridge" | "opening";
 
 type StoryBranch = {
   id: string;
@@ -24,6 +25,7 @@ type StoryConfig = {
   episode: string;
   sceneImage: string;
   sceneVideoSrc?: string | null;
+  sceneRewindSrc?: string | null;
   openingPrompt: string;
   returnPrompt: string;
   branches: StoryBranch[];
@@ -41,6 +43,7 @@ const DEFAULT_STORY: StoryConfig = {
   episode: "一個平常的晚上",
   sceneImage: "/assets/scene-observe.webp",
   sceneVideoSrc: "/videos/filler-opening-upset-couple.mp4",
+  sceneRewindSrc: "/videos/filler-opening-upset-couple-reverse.mp4",
   openingPrompt: "你覺得現在發生了什麼？",
   returnPrompt: "你覺得接下來會發生什麼？",
   branches: [
@@ -91,7 +94,8 @@ const PHASE_LABELS: Record<Phase, string> = {
   return: "Scene 5 — 回到場景",
 };
 
-const REWIND_RATE = 4;
+const REWIND_RATE = 16;
+const BRIDGE_MIN_DURATION_MS = 900;
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -105,14 +109,20 @@ export default function Home() {
   const [activeBranch, setActiveBranch] = useState<StoryBranch | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [isRewinding, setIsRewinding] = useState(false);
-  const [rewindVisible, setRewindVisible] = useState(false);
+  const [rewindStage, setRewindStage] = useState<RewindStage>("idle");
+  const [branchVisible, setBranchVisible] = useState(false);
+  const [branchRewindVisible, setBranchRewindVisible] = useState(false);
+  const [openingRewindVisible, setOpeningRewindVisible] = useState(false);
+  const [openingBufferReady, setOpeningBufferReady] = useState(false);
+  const [bridgeStartedAt, setBridgeStartedAt] = useState<number | null>(null);
   const [videoFailed, setVideoFailed] = useState(false);
   const [playbackBlocked, setPlaybackBlocked] = useState(false);
   const [loopCount, setLoopCount] = useState(0);
   const [playerId, setPlayerId] = useState("");
   const stageRef = useRef<HTMLElement>(null);
+  const openingVideoRef = useRef<HTMLVideoElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const openingRewindVideoRef = useRef<HTMLVideoElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -136,6 +146,17 @@ export default function Home() {
   }, [phase, story.sceneVideoSrc]);
 
   useEffect(() => {
+    const openingVideo = openingVideoRef.current;
+    if (!openingVideo || !story.sceneVideoSrc) return;
+
+    if (phase === "observe" && rewindStage === "idle") {
+      openingVideo.play().catch(() => undefined);
+    } else {
+      openingVideo.pause();
+    }
+  }, [phase, rewindStage, story.sceneVideoSrc]);
+
+  useEffect(() => {
     if (phase === "input" || phase === "return") {
       const timer = window.setTimeout(() => inputRef.current?.focus(), 180);
       return () => window.clearTimeout(timer);
@@ -144,30 +165,51 @@ export default function Home() {
 
   const fallbackDuration = activeBranch?.fallbackDurationSec ?? 11;
   const isFallbackCut = !activeBranch?.videoSrc || videoFailed;
+  const showOpeningPrompt = useCallback(() => {
+    setPhase(loopCount > 0 ? "return" : "input");
+  }, [loopCount]);
 
   const finishPlayback = useCallback(() => {
     setIsPlaying(false);
   }, []);
 
-  const finishRewind = useCallback(() => {
-    const revealFirstFrame = () => {
+  const finishOpeningRewind = useCallback(() => {
+    const restartOpening = () => {
       setInput("");
       setLoopCount((current) => current + 1);
-      setIsRewinding(false);
-      setRewindVisible(false);
-      setPhase("return");
+      setIsPlaying(true);
+      setBranchVisible(false);
+      setBranchRewindVisible(false);
+      setOpeningRewindVisible(false);
+      setOpeningBufferReady(false);
+      setBridgeStartedAt(null);
+      setRewindStage("idle");
+      setPhase("observe");
     };
 
-    const originalVideo = videoRef.current;
-    if (!originalVideo || originalVideo.currentTime <= 0.04) {
-      revealFirstFrame();
+    const openingVideo = openingVideoRef.current;
+    if (!openingVideo || openingVideo.currentTime <= 0.04) {
+      restartOpening();
       return;
     }
 
-    originalVideo.pause();
-    originalVideo.addEventListener("seeked", revealFirstFrame, { once: true });
-    originalVideo.currentTime = 0;
+    openingVideo.pause();
+    openingVideo.addEventListener("seeked", restartOpening, { once: true });
+    openingVideo.currentTime = 0;
   }, []);
+
+  const finishBranchRewind = useCallback(() => {
+    if (!story.sceneRewindSrc) {
+      finishOpeningRewind();
+      return;
+    }
+
+    setBranchRewindVisible(false);
+    setOpeningRewindVisible(false);
+    setOpeningBufferReady(false);
+    setBridgeStartedAt(window.performance.now());
+    setRewindStage("bridge");
+  }, [finishOpeningRewind, story.sceneRewindSrc]);
 
   useEffect(() => {
     if (phase !== "playback" || !isFallbackCut || !isPlaying) return;
@@ -184,7 +226,7 @@ export default function Home() {
   }, [elapsed, fallbackDuration, finishPlayback, isFallbackCut, phase]);
 
   useEffect(() => {
-    if (phase !== "playback" || !activeBranch?.rewindSrc) return;
+    if (phase !== "playback" || rewindStage !== "idle" || !activeBranch?.rewindSrc) return;
 
     const preload = document.createElement("video");
     preload.preload = "auto";
@@ -196,7 +238,26 @@ export default function Home() {
       preload.removeAttribute("src");
       preload.load();
     };
-  }, [activeBranch?.rewindSrc, phase]);
+  }, [activeBranch?.rewindSrc, phase, rewindStage]);
+
+  useEffect(() => {
+    if (rewindStage !== "bridge" || !openingBufferReady || bridgeStartedAt === null) return;
+
+    const elapsedMs = window.performance.now() - bridgeStartedAt;
+    const remainingMs = Math.max(0, BRIDGE_MIN_DURATION_MS - elapsedMs);
+    const timer = window.setTimeout(() => setRewindStage("opening"), remainingMs);
+    return () => window.clearTimeout(timer);
+  }, [bridgeStartedAt, openingBufferReady, rewindStage]);
+
+  useEffect(() => {
+    if (rewindStage !== "opening") return;
+    const openingRewindVideo = openingRewindVideoRef.current;
+    if (!openingRewindVideo) return;
+
+    openingRewindVideo.playbackRate = REWIND_RATE;
+    openingRewindVideo.currentTime = 0;
+    openingRewindVideo.play().catch(() => undefined);
+  }, [rewindStage]);
 
   const submitInterpretation = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -239,8 +300,10 @@ export default function Home() {
     setActiveBranch(matchedBranch);
     setElapsed(0);
     setIsPlaying(true);
-    setIsRewinding(false);
-    setRewindVisible(false);
+    setRewindStage("idle");
+    setBranchVisible(false);
+    setBranchRewindVisible(false);
+    setOpeningRewindVisible(false);
     setVideoFailed(false);
     setPlaybackBlocked(false);
     setPhase("playback");
@@ -253,18 +316,37 @@ export default function Home() {
   };
   const startRewind = () => {
     if (!activeBranch?.rewindSrc) {
-      finishRewind();
+      finishBranchRewind();
       return;
     }
 
     setPlaybackBlocked(false);
-    setRewindVisible(false);
-    setIsRewinding(true);
+    setBranchRewindVisible(false);
+    setRewindStage("branch");
   };
 
-  const keepBranchFrame =
+  const skipOpening = () => {
+    const openingVideo = openingVideoRef.current;
+    if (!openingVideo || !Number.isFinite(openingVideo.duration)) {
+      showOpeningPrompt();
+      return;
+    }
+
+    openingVideo.pause();
+    const target = Math.max(0, openingVideo.duration - 0.04);
+    if (Math.abs(openingVideo.currentTime - target) <= 0.04) {
+      showOpeningPrompt();
+      return;
+    }
+
+    openingVideo.addEventListener("seeked", showOpeningPrompt, { once: true });
+    openingVideo.currentTime = target;
+  };
+
+  const showBranchLayer =
+    phase === "playback" &&
     Boolean(activeBranch) &&
-    (phase === "playback" || phase === "return" || (phase === "matching" && loopCount > 0));
+    (rewindStage === "idle" || rewindStage === "branch");
 
   return (
     <main
@@ -272,43 +354,19 @@ export default function Home() {
       className={`story-stage phase-${phase}`}
       aria-label={`${story.title}：${story.episode}`}
     >
-      {keepBranchFrame && activeBranch ? (
-        activeBranch.videoSrc && !videoFailed ? (
-          <video
-            ref={videoRef}
-            key={activeBranch.videoSrc}
-            className="scene-media playback-video"
-            src={activeBranch.videoSrc}
-            poster={activeBranch.posterSrc}
-            autoPlay={phase === "playback" && isPlaying}
-            playsInline
-            preload="auto"
-            onCanPlay={(event) => {
-              if (phase !== "playback" || !isPlaying || isRewinding) return;
-              event.currentTarget.play().catch(() => setPlaybackBlocked(true));
-            }}
-            onEnded={() => {
-              if (phase === "playback" && !isRewinding) finishPlayback();
-            }}
-            onError={() => setVideoFailed(true)}
-          />
-        ) : (
-          <img
-            className={`scene-media playback-still ${isPlaying ? "is-playing" : ""}`}
-            src={activeBranch.posterSrc}
-            alt="男人站在餐桌旁，女人坐在桌前回頭看他"
-          />
-        )
-      ) : phase === "observe" && story.sceneVideoSrc ? (
+      {story.sceneVideoSrc ? (
         <video
+          ref={openingVideoRef}
+          key={story.sceneVideoSrc}
           className="scene-media opening-video"
           src={story.sceneVideoSrc}
           poster={sceneImage}
-          autoPlay
           muted
           playsInline
           preload="auto"
-          onEnded={() => setPhase("input")}
+          onEnded={() => {
+            if (rewindStage === "idle" && phase === "observe") showOpeningPrompt();
+          }}
         />
       ) : (
         <img
@@ -319,9 +377,38 @@ export default function Home() {
         />
       )}
 
-      {phase === "playback" && activeBranch?.rewindSrc && isRewinding && (
+      {showBranchLayer && activeBranch &&
+        (activeBranch.videoSrc && !videoFailed ? (
+          <video
+            ref={videoRef}
+            key={activeBranch.videoSrc}
+            className={`scene-media playback-video branch-video ${branchVisible ? "is-visible" : ""}`}
+            src={activeBranch.videoSrc}
+            poster={activeBranch.posterSrc}
+            autoPlay={rewindStage === "idle" && isPlaying}
+            playsInline
+            preload="auto"
+            onCanPlay={(event) => {
+              if (rewindStage !== "idle" || !isPlaying) return;
+              event.currentTarget.play().catch(() => setPlaybackBlocked(true));
+            }}
+            onPlaying={() => setBranchVisible(true)}
+            onEnded={() => {
+              if (rewindStage === "idle") finishPlayback();
+            }}
+            onError={() => setVideoFailed(true)}
+          />
+        ) : (
+          <img
+            className={`scene-media playback-still ${isPlaying ? "is-playing" : ""}`}
+            src={activeBranch.posterSrc}
+            alt="男人站在餐桌旁，女人坐在桌前回頭看他"
+          />
+        ))}
+
+      {phase === "playback" && activeBranch?.rewindSrc && rewindStage === "branch" && (
         <video
-          className={`scene-media rewind-video ${rewindVisible ? "is-visible" : ""}`}
+          className={`scene-media rewind-video ${branchRewindVisible ? "is-visible" : ""}`}
           src={activeBranch.rewindSrc}
           muted
           playsInline
@@ -330,12 +417,32 @@ export default function Home() {
             event.currentTarget.playbackRate = REWIND_RATE;
             event.currentTarget.play().catch(() => undefined);
           }}
-          onPlaying={() => setRewindVisible(true)}
-          onEnded={finishRewind}
+          onPlaying={() => setBranchRewindVisible(true)}
+          onEnded={finishBranchRewind}
         />
       )}
 
-      {phase === "playback" && activeBranch?.screenOverlay && !isRewinding && (
+      {story.sceneRewindSrc && (rewindStage === "bridge" || rewindStage === "opening") && (
+        <video
+          ref={openingRewindVideoRef}
+          className={`scene-media rewind-video ${openingRewindVisible ? "is-visible" : ""}`}
+          src={story.sceneRewindSrc}
+          muted
+          playsInline
+          preload="auto"
+          onCanPlay={(event) => {
+            setOpeningBufferReady(true);
+            if (rewindStage === "opening") {
+              event.currentTarget.playbackRate = REWIND_RATE;
+              event.currentTarget.play().catch(() => undefined);
+            }
+          }}
+          onPlaying={() => setOpeningRewindVisible(true)}
+          onEnded={finishOpeningRewind}
+        />
+      )}
+
+      {phase === "playback" && activeBranch?.screenOverlay && rewindStage === "idle" && (
         <ScreenReplacement
           config={activeBranch.screenOverlay}
           stageRef={stageRef}
@@ -347,9 +454,11 @@ export default function Home() {
       <div className="cinema-vignette" aria-hidden="true" />
       <div className="top-shade" aria-hidden="true" />
 
-      {phase !== "playback" && (
+      {(phase !== "playback" || rewindStage === "bridge") && (
         <header className="scene-header">
-          <p className="scene-label">{PHASE_LABELS[phase]}</p>
+          <p className="scene-label">
+            {rewindStage === "bridge" ? PHASE_LABELS.input : PHASE_LABELS[phase]}
+          </p>
           <p className="story-mark">
             <span>{story.title}</span>
             <span className="story-mark-divider" aria-hidden="true" />
@@ -359,7 +468,7 @@ export default function Home() {
       )}
 
       {phase === "observe" && (
-        <button className="observe-cue" type="button" onClick={() => setPhase("input")}>
+        <button className="observe-cue" type="button" onClick={skipOpening}>
           <span>觀察眼前的場景</span>
           <small>點一下繼續</small>
         </button>
@@ -393,6 +502,22 @@ export default function Home() {
         </form>
       )}
 
+      {rewindStage === "bridge" && (
+        <section className="interpretation-panel rewind-bridge-panel" aria-label="剛才的解讀">
+          <p className="loop-note">剛才，你在這裡改變了故事</p>
+          <p className="rewind-bridge-prompt">{story.openingPrompt}</p>
+          <div className="input-shell">
+            <input value={lastInput} readOnly aria-label="玩家剛才輸入的解讀" />
+            <button type="button" disabled aria-hidden="true">
+              <span>↶</span>
+            </button>
+          </div>
+          <p className="input-hint rewind-buffer-status">
+            {openingBufferReady ? "更早的畫面已就緒…" : "正在準備更早的畫面…"}
+          </p>
+        </section>
+      )}
+
       {phase === "matching" && (
         <section className="matching-state" role="status" aria-live="polite">
           <span className="matching-spinner" aria-hidden="true" />
@@ -402,20 +527,20 @@ export default function Home() {
         </section>
       )}
 
-      {phase === "playback" && activeBranch && isFallbackCut && (
+      {phase === "playback" && rewindStage === "idle" && activeBranch && isFallbackCut && (
         <section className="story-continuation" aria-label="故事正在繼續">
           <p className="branch-subtitle">{activeBranch.previewSubtitle}</p>
         </section>
       )}
 
-      {phase === "playback" && playbackBlocked && !videoFailed && (
+      {phase === "playback" && rewindStage === "idle" && playbackBlocked && !videoFailed && (
         <button className="continue-story" type="button" onClick={continuePlayback}>
           <span>繼續故事</span>
           <small>點一下繼續</small>
         </button>
       )}
 
-      {phase === "playback" && activeBranch && !isPlaying && !isRewinding && (
+      {phase === "playback" && activeBranch && !isPlaying && rewindStage === "idle" && (
         <button className="rewind-story" type="button" onClick={startRewind}>
           <span className="rewind-symbol" aria-hidden="true">↶</span>
           <strong>倒帶</strong>
@@ -423,7 +548,7 @@ export default function Home() {
         </button>
       )}
 
-      {phase === "playback" && isRewinding && (
+      {phase === "playback" && (rewindStage === "branch" || rewindStage === "opening") && (
         <p className="rewind-status" role="status" aria-live="polite">
           REWIND <span>×{REWIND_RATE}</span>
         </p>
