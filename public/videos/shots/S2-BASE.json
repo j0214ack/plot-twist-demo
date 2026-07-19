@@ -1,0 +1,23 @@
+{
+  "shotId": "S2-BASE",
+  "sourceFile": "source-videos/drive/S2-BASE.mp4",
+  "sourceSha256": "ff31a1ced49377d16fbbe4bbedc5b6b8da667e956e291be06bbe6057d5f7b1dc",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Male Yun, hospital corridor, isolation, and phone pickup all read clearly. Pass for shared H/C production segment."
+}

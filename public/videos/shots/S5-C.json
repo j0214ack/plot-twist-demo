@@ -1,0 +1,23 @@
+{
+  "shotId": "S5-C",
+  "sourceFile": "source-videos/drive/S5-C.mp4",
+  "sourceSha256": "1c96037619d06c8b141f44b9847e639104979b4e2f88adc903072103997c85f7",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Male Yun and Mira share the vending-machine space; his emotional release and her steady hand on his shoulder are readable."
+}

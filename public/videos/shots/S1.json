@@ -1,0 +1,23 @@
+{
+  "shotId": "S1",
+  "sourceFile": "source-videos/drive/S1.mp4",
+  "sourceSha256": "8eab9b716ef9131ac04a3055c2a57d9a027553b3a8334409285de22ed141c47b",
+  "sourceDurationSec": 10.041667,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": null
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": null
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Neutral waiting shot, phone glow, bedroom, and slow push all read clearly. The 10-second source is retained for flexible prompt timing."
+}

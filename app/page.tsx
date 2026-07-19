@@ -69,9 +69,9 @@ const DEFAULT_STORY: StoryConfig = {
   id: "read-0942-mvp",
   title: "已讀 9:42",
   episode: "同一個晚上",
-  sceneImage: "/assets/read-0942-opening-poster.jpg",
-  sceneVideoSrc: null,
-  sceneRewindSrc: null,
+  sceneImage: "/assets/shots/S1.jpg",
+  sceneVideoSrc: "/videos/read-0942-opening-v4.mp4",
+  sceneRewindSrc: "/videos/read-0942-opening-v4-reverse.mp4",
   sceneMessageOverlay: {
     sender: "MIRA → YUN",
     messages: ["你到家了嗎？", "方便的話，回我一下。"],
@@ -87,12 +87,12 @@ const DEFAULT_STORY: StoryConfig = {
       title: "他根本不在乎我",
       matchHint: "玩家把已讀不回解讀為冷淡、忽視、拒絕、敷衍或帶有敵意。",
       keywords: ["不在乎", "故意", "敷衍", "討厭", "冷淡", "生氣", "不想回", "已讀不回", "拒絕", "算了"],
-      videoSrc: null,
-      rewindSrc: null,
-      posterSrc: "/assets/read-0942-hostile-poster.jpg",
-      previewSubtitle: "她把他的沉默讀成拒絕，於是也用一句冷淡的話回應。鏡頭轉向醫院的走廊。",
+      videoSrc: "/videos/read-0942-hostile-v4.mp4",
+      rewindSrc: "/videos/read-0942-hostile-v4-reverse.mp4",
+      posterSrc: "/assets/shots/S3-H.jpg",
+      previewSubtitle: "她把他的沉默讀成拒絕；同一晚，醫院裡的他收到冷淡訊息。三週後，兩人在街口擦身而過。",
       interpretationEcho: "你把他的沉默讀成拒絕：他看見了，卻選擇不在乎。",
-      fallbackDurationSec: 15,
+      fallbackDurationSec: 40,
       screenOverlay: null,
       messageOverlay: {
         sender: "MIRA → YUN",
@@ -100,14 +100,36 @@ const DEFAULT_STORY: StoryConfig = {
         meta: "已送出 · 22:03",
         tone: "hostile",
         startSec: 0.65,
-        endSec: 4.85,
+        endSec: 7.85,
       },
       priming: {
         innerNarration:
           "不確定讓 Mira 很難受。為了不再等，她把受傷翻成生氣，也把猜測當成答案。先推開對方，至少感覺比較有尊嚴。",
         nextAction: "她會刪掉原本想問的話，只留下：「算了，當我沒說。」",
       },
-      videoNarration: [],
+      videoNarration: [
+        {
+          startSec: 0.65,
+          endSec: 7.85,
+          label: "MIRA · 心理活動",
+          text: "「既然你不在乎，我也不要再顯得那麼在乎。」受傷被她包成一句冷淡的話。",
+          tone: "hostile",
+        },
+        {
+          startSec: 8.2,
+          endSec: 23.8,
+          label: "YUN · 另一端",
+          text: "她不知道的是，Yun 正在醫院陪媽媽。而他收到的，是那句「算了，當我沒說」。",
+          tone: "neutral",
+        },
+        {
+          startSec: 32.2,
+          endSec: 39.8,
+          label: "三週後",
+          text: "之後，什麼事都沒有發生。你們只是慢慢地，不講話了。",
+          tone: "hostile",
+        },
+      ],
     },
     {
       id: "caring",
@@ -116,7 +138,7 @@ const DEFAULT_STORY: StoryConfig = {
       keywords: ["出事", "還好嗎", "擔心", "忙", "醫院", "原因", "遇到事情", "照顧", "需要幫忙", "沒事吧"],
       videoSrc: null,
       rewindSrc: null,
-      posterSrc: "/assets/read-0942-caring-poster.jpg",
+      posterSrc: "/assets/shots/S3-C.jpg",
       previewSubtitle: "她沒有急著定罪，而是先問了一句：你還好嗎？鏡頭轉向醫院的走廊。",
       interpretationEcho: "你沒有急著定罪；你懷疑，沉默也許是他正在求救。",
       fallbackDurationSec: 20,
@@ -596,7 +618,7 @@ export default function Home() {
         <img
           className="scene-media scene-base"
           src={sceneImage}
-          alt="夜晚的公寓裡，一名男人剛回家，一名女人沉默地站在廚房"
+          alt="夜晚的臥室裡，Mira 獨自看著亮起的手機等待回覆"
           fetchPriority="high"
         />
       )}
@@ -627,7 +649,7 @@ export default function Home() {
           <img
             className={`scene-media playback-still ${isPlaying ? "is-playing" : ""}`}
             src={activeBranch.posterSrc}
-            alt="男人站在餐桌旁，女人坐在桌前回頭看他"
+            alt="Mira 在夜晚的臥室裡看著手機，故事即將因她的解讀分岔"
           />
         ))}
 

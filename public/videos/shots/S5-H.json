@@ -1,0 +1,23 @@
+{
+  "shotId": "S5-H",
+  "sourceFile": "source-videos/drive/S5-H.mp4",
+  "sourceSha256": "675d37f09529086ca1767823630c318c97c29a374d471b01b1782a0e7635f984",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "The static street framing, bus wipe, missed encounter, and separation are all readable. Pass for hackathon production."
+}

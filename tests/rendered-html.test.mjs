@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 const projectRoot = new URL("../", import.meta.url);
@@ -79,18 +79,23 @@ test("matches a player interpretation without an API key", async () => {
   });
 });
 
-test("keeps the v4.1 runtime clear of superseded video assets", async () => {
-  const [story, shotlist, videoFiles] = await Promise.all([
+test("ships the complete v4.1 hostile route with opening and rewind assets", async () => {
+  const [story, shotlist, opening, openingRewind, hostile, hostileRewind] = await Promise.all([
     readFile(new URL("public/story.json", projectRoot), "utf8"),
     readFile(new URL("demo-shotlist.md", projectRoot), "utf8"),
-    readdir(new URL("public/videos/", projectRoot)),
+    stat(new URL("public/videos/read-0942-opening-v4.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-opening-v4-reverse.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-hostile-v4.mp4", projectRoot)),
+    stat(new URL("public/videos/read-0942-hostile-v4-reverse.mp4", projectRoot)),
   ]);
 
   assert.match(shotlist, /v4\.1/);
   assert.match(shotlist, /Yun, an East Asian man/);
   assert.match(shotlist, /S4-C2/);
-  assert.doesNotMatch(story, /\/videos\//);
-  assert.equal(videoFiles.some((name) => /\.(?:mp4|mov|webm|mkv)$/i.test(name)), false);
+  assert.match(story, /\/videos\/read-0942-opening-v4\.mp4/);
+  assert.match(story, /\/videos\/read-0942-opening-v4-reverse\.mp4/);
+  assert.match(story, /\/videos\/read-0942-hostile-v4\.mp4/);
+  assert.match(story, /\/videos\/read-0942-hostile-v4-reverse\.mp4/);
   assert.match(story, /"sceneMessageOverlay"/);
   assert.match(story, /已讀 · 21:42/);
   assert.match(story, /算了，當我沒說。/);
@@ -98,5 +103,10 @@ test("keeps the v4.1 runtime clear of superseded video assets", async () => {
   assert.match(story, /"priming"/);
   assert.match(story, /"videoNarration"/);
   assert.match(story, /她把受傷翻成生氣/);
-  assert.match(story, /"videoNarration": \[\]/);
+  assert.match(story, /YUN · 另一端/);
+  assert.match(story, /三週後/);
+  assert.ok(opening.size > 5_000_000);
+  assert.ok(openingRewind.size > 500_000);
+  assert.ok(hostile.size > 5_000_000);
+  assert.ok(hostileRewind.size > 4_000_000);
 });

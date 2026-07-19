@@ -1,8 +1,22 @@
-# 影片素材（v4.1 待入庫）
+# 影片素材（v4.1 滾動入庫）
 
 舊版 filler、Batch 1 成品、倒帶檔與原始 zip 已於 2026-07-19 清除。新的故事正典與完整分鏡在 `demo-shotlist.md`；Yun 在 v4.1 是短髮、穿深藍夾克的男性角色。
 
-## 等待中的素材
+## 目前 Production 狀態
+
+H 敵意線已完整並接入 runtime：
+
+`S1 → S3-H → S2-BASE → S2-H → S4-H → S5-H`
+
+- Opening：`read-0942-opening-v4.mp4`
+- H reel：`read-0942-hostile-v4.mp4`
+- Opening／H reel 都有對應的 `-reverse.mp4`，由網站以 16× 播放。
+- H reel 的實際長度約 40 秒；Opening 約 10 秒。
+- C 線尚未完整，暫時保留 prototype fallback；已有 `S3-C`、`S2-BASE`、`S5-C`。
+
+每次 Drive 盤點、下載、處理與 QC 結果記錄在根目錄的 `drive-video-ingest.json`。
+
+## v4.1 素材清單
 
 11 個 MUST clips：
 
@@ -22,11 +36,9 @@
 4. 依新成品的實際時間重做訊息 overlay 與心理旁白 cue。
 5. 更新 `public/story.json`、測試並發布。
 
-## Runtime 暫存狀態
+## Runtime 與後製規格
 
-`public/story.json` 目前刻意將所有 `videoSrc`、`rewindSrc`、`sceneVideoSrc` 與 `sceneRewindSrc` 設為 `null`，並清空舊的 `videoNarration` 時間點，避免新影片到來後誤用 Batch 1 的剪接與旁白 timing。
-
-新的正向／倒帶影片確定後，再依實際檔名填回：
+每顆通過的標準化素材放在 `public/videos/shots/`，對應 poster 在 `public/assets/shots/`，metadata JSON 記錄原始 hash、規格與 QC。完整路線再填回 runtime：
 
 ```json
 {

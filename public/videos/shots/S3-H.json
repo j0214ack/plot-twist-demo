@@ -1,0 +1,23 @@
+{
+  "shotId": "S3-H",
+  "sourceFile": "source-videos/drive/S3-H.mp4",
+  "sourceSha256": "ee863d07eb1a9522e1f954959d9c008d34b4281683136e710548116c24c63a78",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted-with-notes",
+  "qc": "The hostile typing and room-darkening beat are clear, but the phone remains visibly face-up and glowing after the throw instead of being snuffed out as specified in v4.1."
+}

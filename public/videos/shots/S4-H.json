@@ -1,0 +1,22 @@
+{
+  "shotId": "S4-H",
+  "sourceFile": "source-videos/drive/S4-H.mp4",
+  "sourceSha256": "c382e42e05e64592b211b0258563b76dd8db842f712a644f0b44cb7b56972b25",
+  "sourceDurationSec": 8.000000,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264"
+  },
+  "processedAt": "2026-07-19 14:21:13",
+  "qcStatus": "accepted-with-notes",
+  "qc": "The hovering thumb and reject-call action are present, but the bedside lamp stays visibly on instead of the room ending in darkness as specified in v4.1."
+}

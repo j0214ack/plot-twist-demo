@@ -1,0 +1,23 @@
+{
+  "shotId": "S2-H",
+  "sourceFile": "source-videos/drive/S2-H.mp4",
+  "sourceSha256": "f8e4f625a9ee4519fd04e1509b80389629a877929243ffb7721b5817927febc9",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "Male Yun, locked corridor framing, physical deflation, and head-back resignation all read clearly."
+}

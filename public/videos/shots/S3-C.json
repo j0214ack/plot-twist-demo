@@ -1,0 +1,23 @@
+{
+  "shotId": "S3-C",
+  "sourceFile": "source-videos/drive/S3-C.mp4",
+  "sourceSha256": "27165a8cdd7d6923d78096405dfa730a710429e04ce63298407d8414ace4f61d",
+  "sourceDurationSec": 8,
+  "original": {
+    "width": 1280,
+    "height": 720,
+    "fps": "24/1",
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "output": {
+    "width": 1280,
+    "height": 720,
+    "fps": 24,
+    "videoCodec": "h264",
+    "audioCodec": "aac"
+  },
+  "processing": "stream-copy with faststart; no generation loss",
+  "qcStatus": "accepted",
+  "qc": "The warm branch reads clearly: Mira remains upright, moves toward the lamp, and turns it on. Pass for hackathon production."
+}
