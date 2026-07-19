@@ -174,10 +174,22 @@ export async function POST(request: Request) {
       }),
     });
 
-    if (!openAIResponse.ok) return Response.json(fallback);
+    if (!openAIResponse.ok) {
+      console.error("OpenAI story route failed", {
+        status: openAIResponse.status,
+        body: (await openAIResponse.text()).slice(0, 1000),
+      });
+      return Response.json(fallback);
+    }
     const responseData = (await openAIResponse.json()) as Record<string, unknown>;
     const outputText = extractOutputText(responseData);
-    if (!outputText) return Response.json(fallback);
+    if (!outputText) {
+      console.warn("OpenAI story route returned no output text", {
+        status: responseData.status,
+        incompleteDetails: responseData.incomplete_details,
+      });
+      return Response.json(fallback);
+    }
 
     const result = JSON.parse(outputText) as {
       branchId?: unknown;
@@ -196,7 +208,8 @@ export async function POST(request: Request) {
           : fallback.echo,
       source: "openai",
     });
-  } catch {
+  } catch (error) {
+    console.error("OpenAI story route threw", error);
     return Response.json(fallback);
   }
 }
