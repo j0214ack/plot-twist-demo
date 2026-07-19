@@ -84,12 +84,15 @@ function fallbackMatch(interpretation: string, candidates: Candidate[], defaultB
   }
 
   return {
-    branchId: best.id,
-    rationale: "以 prototype 關鍵語意規則完成配對。",
-    echo:
-      best.interpretationEcho ||
-      `你從眼前的沉默裡，看見了「${best.title}」。`,
-    source: "fallback" as const,
+    match: {
+      branchId: best.id,
+      rationale: "以 prototype 關鍵語意規則完成配對。",
+      echo:
+        best.interpretationEcho ||
+        `你從眼前的沉默裡，看見了「${best.title}」。`,
+      source: "fallback" as const,
+    },
+    matchedKeywordScore: Math.max(0, bestKeywordScore),
   };
 }
 
@@ -131,7 +134,15 @@ export async function POST(request: Request) {
     candidates.some((candidate) => candidate.id === payload.defaultBranchId)
       ? payload.defaultBranchId
       : undefined;
-  const fallback = fallbackMatch(interpretation, candidates, defaultBranchId);
+  const ruleEvaluation = fallbackMatch(interpretation, candidates, defaultBranchId);
+  const fallback = ruleEvaluation.match;
+  if (ruleEvaluation.matchedKeywordScore > 0) {
+    return Response.json({
+      ...fallback,
+      rationale: "以高信心語意規則完成配對。",
+      source: "rule",
+    });
+  }
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return Response.json(fallback);
 

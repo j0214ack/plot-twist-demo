@@ -75,9 +75,9 @@ test("matches a player interpretation without an API key", async () => {
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
     branchId: "hostile",
-    rationale: "以 prototype 關鍵語意規則完成配對。",
+    rationale: "以高信心語意規則完成配對。",
     echo: "你把他的沉默讀成拒絕：他看見了，卻選擇不在乎。",
-    source: "fallback",
+    source: "rule",
   });
 });
 
@@ -121,10 +121,52 @@ test("routes an unclear interpretation to the neutral default without an API key
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
     branchId: "neutral",
-    rationale: "以 prototype 關鍵語意規則完成配對。",
+    rationale: "以高信心語意規則完成配對。",
     echo: "你沒有急著替沉默定義；你決定先讓答案留到明天。",
-    source: "fallback",
+    source: "rule",
   });
+});
+
+test("routes explicit concern language to the caring branch before calling the LLM", async () => {
+  const worker = await loadWorker();
+  const candidates = [
+    {
+      id: "hostile",
+      title: "他根本不在乎我",
+      matchHint: "玩家把已讀不回解讀為冷淡、忽視或帶有敵意",
+      keywords: ["不在乎", "故意", "已讀不回"],
+    },
+    {
+      id: "caring",
+      title: "會不會是他那邊出事了",
+      matchHint: "玩家擔心對方發生事情，想主動詢問或關心",
+      keywords: ["出事", "發生什麼事", "關心", "還好嗎", "擔心"],
+      interpretationEcho: "你沒有急著定罪；你懷疑，沉默也許是他正在求救。",
+    },
+    {
+      id: "neutral",
+      title: "我現在還不知道",
+      matchHint: "玩家承認資訊不足，決定先等待",
+      keywords: ["不知道", "先等等", "明天"],
+    },
+  ];
+
+  for (const interpretation of ["他發生什麼事了！？", "我來關心他一下"]) {
+    const response = await worker.fetch(
+      new Request("http://localhost/api/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ interpretation, defaultBranchId: "neutral", candidates }),
+      }),
+      environment(),
+      context,
+    );
+
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.branchId, "caring", interpretation);
+    assert.equal(result.source, "rule", interpretation);
+  }
 });
 
 test("ships all complete v4.1 routes with opening and rewind assets", async () => {

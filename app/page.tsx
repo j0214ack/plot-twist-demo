@@ -63,7 +63,7 @@ type MatchResult = {
   branchId: string;
   rationale: string;
   echo: string;
-  source: "openai" | "fallback";
+  source: "openai" | "rule" | "fallback";
 };
 
 const MAX_INTERPRETATION_LENGTH = 100;
@@ -138,8 +138,25 @@ const DEFAULT_STORY: StoryConfig = {
     {
       id: "caring",
       title: "會不會是他那邊出事了",
-      matchHint: "玩家暫緩負面判斷，擔心對方遇到事情、正在忙、需要照顧或需要幫忙。",
-      keywords: ["出事", "還好嗎", "擔心", "忙", "醫院", "原因", "遇到事情", "照顧", "需要幫忙", "沒事吧"],
+      matchHint: "玩家暫緩負面判斷，擔心對方發生事情，想主動詢問、關心、陪伴、照顧或提供幫忙。",
+      keywords: [
+        "出事",
+        "發生什麼事",
+        "怎麼了",
+        "關心",
+        "還好嗎",
+        "擔心",
+        "急事",
+        "醫院",
+        "遇到事情",
+        "照顧",
+        "需要幫忙",
+        "需要我",
+        "問問他",
+        "問他",
+        "去看看",
+        "陪他",
+      ],
       videoSrc: "/videos/read-0942-caring-v4.mp4",
       rewindSrc: "/videos/read-0942-caring-v4-reverse.mp4",
       posterSrc: "/assets/shots/S3-C.jpg",
