@@ -66,6 +66,8 @@ type MatchResult = {
   source: "openai" | "fallback";
 };
 
+const MAX_INTERPRETATION_LENGTH = 100;
+
 const DEFAULT_STORY: StoryConfig = {
   id: "read-0942-mvp",
   title: "已讀 9:42",
@@ -848,7 +850,8 @@ export default function Home() {
               id="interpretation"
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              maxLength={280}
+              maxLength={MAX_INTERPRETATION_LENGTH}
+              aria-describedby="interpretation-hint interpretation-remaining"
               autoComplete="off"
               placeholder={phase === "return" ? "這一次，你看見了什麼？" : "輸入你的理解…"}
             />
@@ -856,7 +859,14 @@ export default function Home() {
               <span aria-hidden="true">➤</span>
             </button>
           </div>
-          <p className="input-hint">沒有選項。說出你真正看見的故事。</p>
+          <div className="input-meta">
+            <p id="interpretation-hint" className="input-hint">
+              沒有選項。說出你真正看見的故事。
+            </p>
+            <p id="interpretation-remaining" className="input-remaining" aria-live="polite">
+              還可以寫 {MAX_INTERPRETATION_LENGTH - input.length} 字
+            </p>
+          </div>
         </form>
       )}
 

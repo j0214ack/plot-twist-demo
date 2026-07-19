@@ -497,12 +497,25 @@ button {
   cursor: default;
 }
 
-.input-hint {
+.input-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin: 12px 0 0;
+}
+
+.input-hint,
+.input-remaining {
+  margin: 0;
   color: rgba(255, 255, 255, 0.35);
-  text-align: center;
   font-size: 10px;
   letter-spacing: 0.08em;
+}
+
+.input-remaining {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
 }
 
 .rewind-bridge-panel {
@@ -1085,6 +1098,10 @@ button {
     display: none;
   }
 
+  .input-meta {
+    justify-content: flex-end;
+  }
+
   .cinematic-message-overlay,
   .message-context-branch {
     top: 112px;
@@ -1170,6 +1187,10 @@ button {
 
   .input-hint {
     display: none;
+  }
+
+  .input-meta {
+    justify-content: flex-end;
   }
 
   .branch-subtitle {

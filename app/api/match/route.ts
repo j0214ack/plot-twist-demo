@@ -109,7 +109,7 @@ export async function POST(request: Request) {
   }
 
   const interpretation =
-    typeof payload.interpretation === "string" ? payload.interpretation.trim().slice(0, 500) : "";
+    typeof payload.interpretation === "string" ? payload.interpretation.trim().slice(0, 100) : "";
   const candidates = normalizeCandidates(payload.candidates);
 
   if (!interpretation || candidates.length === 0) {
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
+        model: process.env.OPENAI_MODEL || "gpt-5-nano",
         store: false,
         reasoning: { effort: "low" },
         max_output_tokens: 180,
