@@ -4,6 +4,7 @@ import "./globals.css";
 
 const title = "已讀 9:42｜AI 敘事遊戲 Prototype";
 const description = "她讀了訊息，卻沒有回。說出你的解讀，看看同一個晚上會走向哪一種可能。";
+const googleAnalyticsId = "G-MEB7QNVY69";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -45,6 +46,19 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-Hant">
+      <head>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`} />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${googleAnalyticsId}');
+            `,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

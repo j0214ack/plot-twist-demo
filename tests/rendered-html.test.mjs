@@ -36,6 +36,8 @@ test("renders the narrative game shell and finished metadata", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>已讀 9:42｜AI 敘事遊戲 Prototype<\/title>/i);
+  assert.match(html, /googletagmanager\.com\/gtag\/js\?id=G-MEB7QNVY69/i);
+  assert.match(html, /gtag\('config', 'G-MEB7QNVY69'\)/);
   assert.match(html, /觀察眼前的場景/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
